@@ -14,6 +14,10 @@ pub enum Item {
     Clubs,
     CardShark,
     Wildcard,
+    Amethyst(u16),
+    LightBulb(u8),
+    Dame,
+    BuffingCapsule,
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
@@ -191,7 +195,8 @@ impl SlotMachine {
     pub fn value_calc(&mut self, items: Vec<Item>) -> (u128, Vec<Item>) {
         let mut val: u128 = 0;
         let mut ret_items = items.clone();
-        for i in 0..items.len() {
+        let mut bord_value_vec: Vec<u64> = vec![];
+        for i in 0..20 {
             let adjecents: Vec<u8> = is_adjecent(i as u8);
             match items[i] {
                 Item::Apple => val += 3,
@@ -214,6 +219,23 @@ impl SlotMachine {
                     val += 3
                 }
                 Item::Honey => val += 3,
+                Item::Amethyst(mut amethyst_value) => {
+                    let mut temp_value = 0;
+                    for x in 0..adjecents.len() {
+                       match items[adjecents[x] as usize] {
+                           Item::Dame|Item::BuffingCapsule => {
+                                amethyst_value += 1;
+                                temp_value = amethyst_value * 2;
+                           },
+                           Item::LightBulb(mut lifetime) => {
+                                amethyst_value += 1;
+                                temp_value = amethyst_value * 2;
+                                lifetime -= 1;
+                           },
+                           _ => (),
+                       }
+                    }
+                },
                 Item::Empty => (),
                 _ => (),
             }
