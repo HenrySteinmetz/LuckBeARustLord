@@ -8,6 +8,12 @@ pub enum Item {
     Anchor,
     Beehive,
     Honey,
+    Diamonds,
+    Spades,
+    Hearts,
+    Clubs,
+    CardShark,
+    Wildcard,
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
@@ -132,8 +138,57 @@ impl SlotMachine {
             panic!("Not enough items to roll!");
         }
     }
+    pub fn convert_cards(items: Vec<Item>) -> Vec<Item> {
+        let mut copy_items = items.clone();
+        for i in 0..items.len() {
+            match copy_items[i] {
+                Item::Clubs|Item::Spades|Item::Hearts|Item::Diamonds => copy_items[i] = Item::Wildcard,
+                _ => (),
+            }
+        }
+        copy_items
+    }
+    
+    pub fn re_add_cards(items: Vec<Item>, cards: Vec<(u8, Item)>) -> Vec<Item> {
+        let mut copy_items = items.clone();
+        for i in cards {
+            copy_items[i.0 as usize] = i.1;
+        }
+        copy_items
+    }
 
-    pub fn calculate(&mut self, items: Vec<Item>) -> (u128, Vec<Item>) {
+    pub fn preprocessing(items: Vec<Item>) -> Option<(Vec<Item>, Vec<(u8, Item)>)> {
+        // Indecies of all cards that are adjecent to a card shark with their type
+        let mut indecies_cards: Vec<(u8, Item)> = vec![];
+        // Mutable copy of the input vector 
+        let mut copy_items: Vec<Item> = items.clone();
+
+        for i in 0..items.len() {
+            let adjecents: Vec<u8> = is_adjecent(i as u8);
+            match copy_items[i] {
+                Item::CardShark => {
+                    for x in 0..adjecents.len() {
+                        match copy_items[adjecents[x] as usize] {
+                            Item::Clubs => indecies_cards.push((adjecents[x], Item::Clubs)),
+                            Item::Spades => indecies_cards.push((adjecents[x], Item::Spades)),
+                            Item::Hearts => indecies_cards.push((adjecents[x], Item::Hearts)),
+                            Item::Diamonds => indecies_cards.push((adjecents[x], Item::Diamonds)),
+                            _ => (),
+                        }
+                    }
+                },
+                _ => (),
+            }
+        }
+        println!("{}", indecies_cards.len());
+        copy_items = Self::convert_cards(copy_items);
+
+        if !indecies_cards.len() == 0 {
+            return Some((copy_items, indecies_cards));
+        } else {return None;}
+    }
+
+    pub fn value_calc(&mut self, items: Vec<Item>) -> (u128, Vec<Item>) {
         let mut val: u128 = 0;
         let mut ret_items = items.clone();
         for i in 0..items.len() {
@@ -160,8 +215,17 @@ impl SlotMachine {
                 }
                 Item::Honey => val += 3,
                 Item::Empty => (),
+                _ => (),
             }
         }
         (val, ret_items)
+    }
+
+    pub fn calculate(&mut self, items: Vec<Item>) -> (u128, Vec<Item>) {
+        let (temp_items, cards): (Vec<Item>, Vec<(u8, Item)>) = 
+            Self::preprocessing(items.clone()).unwrap_or((items, vec![]));
+        let (val, its) = self.value_calc(temp_items);
+        (val, Self::re_add_cards(its, cards))
+
     }
 }
