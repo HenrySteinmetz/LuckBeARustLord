@@ -58,13 +58,6 @@ impl Renderer {
         self.canvas.set_draw_color(Color::RGB(30, 30, 46));
         self.canvas.clear();
         
-        // Render item based on type
-        for item in 0..items.len() {
-            match items[item] {
-                _ => todo!(),
-            }
-        }
-
         self.canvas.present();
         Ok(())
     }

@@ -26,7 +26,7 @@ fn main() -> Result<(), String> {
     let temp = SlotMachine::new();
     let mut _slot_machine = temp.0;
     let mut items = temp.1;
-
+    
     'mainloop: loop {
         renderer.render(items.clone())?;
         for event in sdl_context.event_pump()?.poll_iter() {

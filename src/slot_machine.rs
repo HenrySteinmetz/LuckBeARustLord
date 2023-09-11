@@ -1,5 +1,4 @@
 use rand::Rng;
-use std::convert::TryFrom;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Item {
@@ -90,9 +89,9 @@ impl SlotMachine {
     
     pub fn get_empty(items: Vec<Item>) -> LastEmpty {
         let mut latest_empty: usize = 999;
-        for i in 0..items.len() as u32 {
-            if items[i as usize] == Item::Empty {
-                latest_empty = i as usize;
+        for i in 0..items.len() {
+            if items[i] == Item::Empty {
+                latest_empty = i;
             }
         }
         if latest_empty == 999 {LastEmpty{vector_pos: None}}
@@ -122,7 +121,7 @@ impl SlotMachine {
             let mut ret: Vec<Item> = vec![];
             let mut rng = rand::thread_rng();
             for _ in 0..20 {
-                let items_size: usize = usize::try_from(mut_copy.len()).unwrap();
+                let items_size: usize = mut_copy.len();
                 let rand_num: usize = rng.gen_range(0..items_size);
                 let item = mut_copy[rand_num];
                 mut_copy.remove(rand_num);
@@ -133,7 +132,8 @@ impl SlotMachine {
             panic!("Not enough items to roll!");
         }
     }
-    pub fn calculate(&mut self, items: &mut Vec<Item>) -> (u128, Vec<Item>) {
+
+    pub fn calculate(&mut self, items: Vec<Item>) -> (u128, Vec<Item>) {
         let mut val: u128 = 0;
         let mut ret_items = items.clone();
         for i in 0..items.len() {
@@ -154,7 +154,7 @@ impl SlotMachine {
                 Item::Beehive => {
                     let mut rng = rand::thread_rng();
                     if rng.gen_range(0..10) == 9 {
-                        ret_items = self.add_item(Item::Honey, items);
+                        ret_items = self.add_item(Item::Honey, &mut ret_items);
                     }
                     val += 3
                 }
