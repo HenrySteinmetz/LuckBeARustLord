@@ -1,6 +1,18 @@
 use rand::Rng;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Direction {
+    North, // Oben
+    South, // Unten
+    East, // Rechts
+    West, // Links
+    NorthEast, // Oben rechts
+    NorthWest, // Oben links
+    SouthEast, // Unten rechts
+    SouthWest, // Unten links
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Item {
     Empty,
     Apple,
@@ -18,6 +30,16 @@ pub enum Item {
     LightBulb(u8),
     Dame,
     BuffingCapsule,
+    Cheese,
+    Cherry,
+    CoconutHalf,
+    Coin,
+    Flower,
+    GoldenEgg,
+    Martini,
+    MatryoshkaDollFive,
+    Milk,
+    BronzeArrow(Direction)
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
@@ -34,6 +56,164 @@ pub struct SlotMachine {
 
 pub struct LastEmpty {
     vector_pos: Option<usize>,
+}
+
+pub fn arrow_lookup(arrow: Item, location: u8) -> Option<Vec<u8>> {
+    let mut ret_vec: Vec<u8> = vec![];
+    let direction = match arrow { 
+        Item::BronzeArrow(d) => Some(d),
+        _ => None,
+    }.unwrap();
+
+    match direction {
+        Direction::North => { 
+            match location {
+                0|1|2|3|4 => (),
+                5|6|7|8|9 => ret_vec.push(location-5),
+                10|11|12|13|14 => {
+                    ret_vec.push(location-5);
+                    ret_vec.push(location-10);
+                },
+                15|16|17|18|19 => {
+                    ret_vec.push(location-5);
+                    ret_vec.push(location-10);
+                    ret_vec.push(location-15);
+                },
+                _ => panic!("Index out of range"),
+            }
+        },
+        Direction::South => {
+            match location {
+                15|16|17|18|19 => (),
+                10|11|12|13|14=> ret_vec.push(location+5),
+                5|6|7|8|9 => {
+                    ret_vec.push(location+5);
+                    ret_vec.push(location+10);
+                },
+                0|1|2|3|4 => {
+                    ret_vec.push(location+5);
+                    ret_vec.push(location+10);
+                    ret_vec.push(location+15);
+                },
+                _ => panic!("Index out of range"),
+            }
+        },
+        Direction::East => {
+            match location {
+                4|9|14|19 => (),
+                3|8|13|18 => ret_vec.push(location-1),
+                2|7|12|17 => {
+                    ret_vec.push(location-1);
+                    ret_vec.push(location-2);
+                },
+                1|6|11|16 => {
+                    ret_vec.push(location-1);
+                    ret_vec.push(location-2);
+                    ret_vec.push(location-3);
+                },
+                0|5|10|15 => {
+                    ret_vec.push(location-1);
+                    ret_vec.push(location-2);
+                    ret_vec.push(location-3);                   
+                    ret_vec.push(location-4);                   
+                },
+                _ => panic!("Index out of range"),
+            }
+        },
+        Direction::West => {
+            match location {
+                0|5|10|15 => (),
+                1|6|11|16 => ret_vec.push(location+1),
+                2|7|12|17 => {
+                    ret_vec.push(location+1);
+                    ret_vec.push(location+2);
+                },
+                3|8|13|18 => {
+                    ret_vec.push(location+1);
+                    ret_vec.push(location+2);
+                    ret_vec.push(location+3);                   
+                },
+
+                4|9|14|19 => {
+                    ret_vec.push(location+1);
+                    ret_vec.push(location+2);
+                    ret_vec.push(location+3);                   
+                    ret_vec.push(location+4);                   
+                },
+                _ => panic!("Index out of range"),
+            }
+        },
+        Direction::NorthEast => {
+            match location {
+                0|1|2|3|4|9|14|19 => (),
+                5|6|7|8|13|18 => ret_vec.push(location-4),
+                10|11|12|17 => {
+                    ret_vec.push(location-4);
+                    ret_vec.push(location-8);
+                },
+                15|16 => {
+                    ret_vec.push(location-4);
+                    ret_vec.push(location-8);
+                    ret_vec.push(location-12);
+                },
+                _ => panic!("Index out of range"),
+            }
+        }
+        Direction::NorthWest => {
+            match location {
+                0|1|2|3|4|5|10|15 => (),
+                6|7|8|9|11|16 => ret_vec.push(location-6),
+                12|13|14|17 => {
+                    ret_vec.push(location-6);
+                    ret_vec.push(location-12);
+                },
+                18|19 => {
+                    ret_vec.push(location-6);
+                    ret_vec.push(location-12);
+                    ret_vec.push(location-18);
+                },
+                _ => panic!("Index out of range"),
+            }
+        },
+        Direction::SouthEast => {
+            match location {
+                0|5|10|15|16|17|18|19 => (),
+                1|6|11|12|13|14 => ret_vec.push(location+4),
+                2|7|8|9 => {
+                    ret_vec.push(location+4);
+                    ret_vec.push(location+8);
+                },
+                3|4 => {
+                    ret_vec.push(location+4);
+                    ret_vec.push(location+8);
+                    ret_vec.push(location+12);
+                },
+                _ => panic!("Index out of range"),
+            }
+        },
+        Direction::SouthWest => {
+            match location {
+                4|9|14|15|16|17|18|19 => (),
+                3|8|11|12|13 => ret_vec.push(location+6),
+                2|5|6|7 => {
+                    ret_vec.push(location+6);
+                    ret_vec.push(location+12);
+                },
+                0|1 => {
+                    ret_vec.push(location+6);
+                    ret_vec.push(location+12);
+                    ret_vec.push(location+18);
+                },
+                _ => panic!("Index out of range"),
+            }
+        }
+    }
+
+    if !ret_vec.len() == 0 {
+        return Some(ret_vec);
+    }else {
+        return None;
+    }
 }
 
 pub fn is_adjecent(index: u8) -> Vec<u8> {
@@ -142,6 +322,7 @@ impl SlotMachine {
             panic!("Not enough items to roll!");
         }
     }
+
     pub fn convert_cards(items: Vec<Item>) -> Vec<Item> {
         let mut copy_items = items.clone();
         for i in 0..items.len() {
@@ -192,33 +373,55 @@ impl SlotMachine {
         } else {return None;}
     }
 
-    pub fn value_calc(&mut self, items: Vec<Item>) -> (u128, Vec<Item>) {
-        let mut val: u128 = 0;
+    pub fn remove_empty(items: Vec<Item>) -> Vec<Item> {
         let mut ret_items = items.clone();
-        let mut bord_value_vec: Vec<u64> = vec![];
+        while ret_items.len() >= 20 {
+            ret_items.remove(Self::get_empty(ret_items).vector_pos.unwrap());
+        }
+        ret_items
+    }
+    // This is the function to add all random symbols and manage symbol lifetimes
+    pub fn events(self, items: Vec<Item>) -> Vec<Item> {
+        let mut ret_items = items.clone();
+        let mut emptys_to_remove: u8 = 0;
         for i in 0..20 {
-            let adjecents: Vec<u8> = is_adjecent(i as u8);
-            match items[i] {
-                Item::Apple => val += 3,
-                Item::Diamond => {
-                    let mut diamond_value: u128 = 5;
-                    for x in 0..adjecents.len() {
-                        if items[adjecents[x] as usize] == Item::Diamond {diamond_value+=1}
-                    }
-                    val += diamond_value;
-                }
-                Item::Anchor => val += match i { 
-                    0|4|15|19 => 5,
-                    _ => 1,
-                },
+            match ret_items[i] {
                 Item::Beehive => {
                     let mut rng = rand::thread_rng();
                     if rng.gen_range(0..10) == 9 {
                         ret_items = self.add_item(Item::Honey, &mut ret_items);
                     }
-                    val += 3
+                },
+                Item::LightBulb(0) => {
+                    emptys_to_remove += 1;
+                    ret_items[i] = Item::Empty;
+                },
+                Item::LightBulb(x) => x-=1,
+            }
+        }
+        ret_items
+    }
+
+    pub fn base_value_array(items: Vec<Item>) -> Vec<u64> {
+        let mut ret_vec: Vec<u64> = vec![];
+        let mut bord_value_vec: Vec<u64> = vec![];
+        for i in 0..20 {
+            let adjecents: Vec<u8> = is_adjecent(i as u8);
+            match items[i] {
+                Item::Apple => ret_vec.push(3),
+                Item::Diamond => {
+                    let mut diamond_value: u64 = 5;
+                    for x in 0..adjecents.len() {
+                        if items[adjecents[x] as usize] == Item::Diamond {diamond_value+=1}
+                    }
+                    ret_vec.push(diamond_value);
                 }
-                Item::Honey => val += 3,
+                Item::Anchor => ret_vec.push(match i { 
+                    0|4|15|19 => 5,
+                    _ => 1,
+                }),
+                Item::Beehive => ret_vec.push(3),
+                Item::Honey => ret_vec.push(3),
                 Item::Amethyst(mut amethyst_value) => {
                     let mut temp_value = 0;
                     for x in 0..adjecents.len() {
@@ -236,11 +439,26 @@ impl SlotMachine {
                        }
                     }
                 },
+                Item::Cheese => ret_vec.push(3),
+                Item::Cherry => ret_vec.push(1),
+                Item::CoconutHalf => ret_vec.push(2),
+                Item::Coin => ret_vec.push(1),
+                Item::Flower => ret_vec.push(1),
+                Item::GoldenEgg => ret_vec.push(4),
+                Item::Martini => ret_vec.push(3),
+                Item::MatryoshkaDollFive => ret_vec.push(4),
+                Item::Milk => ret_vec.push(1),
                 Item::Empty => (),
                 _ => (),
             }
         }
-        (val, ret_items)
+        bord_value_vec
+    }
+
+    pub fn value_calc(&mut self, items: Vec<Item>) -> (u128, Vec<Item>) {
+        let event_items = self.events(items);
+        let value_vec = Self::base_value_array(event_items);
+
     }
 
     pub fn calculate(&mut self, items: Vec<Item>) -> (u128, Vec<Item>) {
@@ -248,6 +466,5 @@ impl SlotMachine {
             Self::preprocessing(items.clone()).unwrap_or((items, vec![]));
         let (val, its) = self.value_calc(temp_items);
         (val, Self::re_add_cards(its, cards))
-
     }
 }
