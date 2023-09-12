@@ -1,8 +1,9 @@
-mod item_functions;
+pub mod item_functions;
 use item_functions::*;
-mod look_up_tables;
+pub mod look_up_tables;
 use look_up_tables::*;
 use rand::Rng;
+
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Direction {
@@ -258,11 +259,13 @@ impl SlotMachine {
 
                 // Bitte immer als letztes lassen
                 Item::Wildcard => {
-                    mut_value_vec[i] = adjecents
-                        .iter()
-                        .map(|x| value_vec[*x as usize])
-                        .max()
-                        .unwrap()
+                    let mut max: i64 = 0;
+                    for y in 0..adjecents.len() {
+                        if value_vec[adjecents[y] as usize] > max {
+                            max = value_vec[adjecents[y] as usize];
+                        }
+                    }
+                    mut_value_vec[i] = max;
                 }
                 _ => (),
             }

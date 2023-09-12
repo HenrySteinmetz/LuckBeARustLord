@@ -3,13 +3,11 @@ use sdl2::keyboard::Keycode;
 use std::time::Duration;
 
 mod slot_machine;
-use slot_machine::SlotMachine;
-use slot_machine::State;
-use slot_machine::Item;
+use crate::slot_machine::item_functions::add_item;
+use crate::slot_machine::*;
 
 mod renderer;
 use renderer::Renderer;
-use renderer::Point;
 
 fn main() -> Result<(), String> {
     let sdl_context = sdl2::init()?;
@@ -20,8 +18,20 @@ fn main() -> Result<(), String> {
         .build()
         .map_err(|e| e.to_string())?;
     let mut renderer = Renderer::new(window)?;
-    let (mut _slot_machine, mut items) = SlotMachine::new();
+    let (mut slot_machine, mut items) = SlotMachine::new();
     
+    add_item(Item::Wildcard, &mut items);
+    add_item(Item::Wildcard, &mut items);
+    add_item(Item::Coin, &mut items);
+    add_item(Item::Diamond, &mut items);
+
+    let temp = slot_machine.calculate(items);
+    let money = temp.0;
+    items = temp.1;
+    slot_machine = temp.2;
+
+    println!("{}", money);
+
     'mainloop: loop {
         renderer.render(items.clone())?;
         for event in sdl_context.event_pump()?.poll_iter() {
