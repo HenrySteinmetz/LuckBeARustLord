@@ -12,8 +12,15 @@ const TILE_SIZE_IN_PXS: i32 = 120;
 //const SCREEN_HEIGHT_IN_PXS: i32 = 600;
 
 pub struct Renderer {canvas: WindowCanvas}
+#[derive(Debug)]
 pub struct Point (pub u16, pub u16);
 
+
+impl std::fmt::Display for Point {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
 impl std::fmt::Display for Item {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(f, "{:?}", self)
@@ -30,8 +37,8 @@ pub fn index_to_point(index: u8) -> Point {
     match index {
         0|1|2|3|4 => Point(i, 0),
         5|6|7|8|9 => Point(i-5, 1),
-        10|11|12|13|14 => Point(i-10, 1),
-        15|16|17|18|19 => Point(i-15, 1),
+        10|11|12|13|14 => Point(i-10, 2),
+        15|16|17|18|19 => Point(i-15, 3),
         _ => panic!("Index out of range!"),
     }
 }
@@ -41,8 +48,8 @@ impl Renderer {
         Ok(Renderer{canvas})
     }
     pub fn draw_item(&mut self, item: Item, point: Point) -> Result<(), String>{
-        let x_offset = point.0 as i32 * TILE_SIZE_IN_PXS;
-        let y_offset = point.1 as i32 * TILE_SIZE_IN_PXS;
+        let x_offset = point.0 as i32 * TILE_SIZE_IN_PXS + 660;
+        let y_offset = point.1 as i32 * TILE_SIZE_IN_PXS + 240;
         let file_name = item_to_file_name(item);
         let file_path = Path::new(&file_name);
         let texture_creator = self.canvas.texture_creator();
@@ -61,7 +68,10 @@ impl Renderer {
         Ok(())
     }
     pub fn render(&mut self, items: Vec<Item>) -> Result<(), String> {
+        self.canvas.set_draw_color(Color::BLACK);
         self.canvas.clear();
+        self.canvas.set_draw_color(Color::WHITE);
+        self.canvas.draw_rect(Rect::new(660, 240, 600, 480))?;
         self.draw_ui()?;
         self.draw_slots(items)?;
         self.canvas.present();

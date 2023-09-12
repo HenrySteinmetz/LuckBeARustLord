@@ -27,7 +27,7 @@ fn main() -> Result<(), String> {
         for event in sdl_context.event_pump()?.poll_iter() {
             match event {
                 Event::KeyDown {keycode: Option::Some(Keycode::Space),..} => (),
-                Event::Quit {..}|Event::KeyDown {keycode: Option::Some(Keycode::Escape),..} => break 'mainloop,
+                Event::Quit {..} => break 'mainloop,
                 _ => {}
             }
         }
