@@ -14,18 +14,13 @@ use renderer::Point;
 fn main() -> Result<(), String> {
     let sdl_context = sdl2::init()?;
     let video_subsystem = sdl_context.video()?;
-
     let window = video_subsystem
         .window("lbal", 800, 600)
         .position_centered()
         .build()
         .map_err(|e| e.to_string())?;
-
     let mut renderer = Renderer::new(window)?;
-    
-    let temp = SlotMachine::new();
-    let mut _slot_machine = temp.0;
-    let mut items = temp.1;
+    let (mut _slot_machine, mut items) = SlotMachine::new();
     
     'mainloop: loop {
         renderer.render(items.clone())?;

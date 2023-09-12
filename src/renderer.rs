@@ -2,62 +2,68 @@ use sdl2::render::WindowCanvas;
 use sdl2::video::Window;
 use sdl2::rect::Rect;
 use sdl2::pixels::Color;
+use sdl2::image::LoadTexture;
+use std::path::Path;
 use crate::Item;
 
 const TILE_SIZE_IN_PXS: i32 = 120;
 // Temporary 
-const SCREEN_WIDTH_IN_PXS: i32 = 800;
-const SCREEN_HEIGHT_IN_PXS: i32 = 600;
+//const SCREEN_WIDTH_IN_PXS: i32 = 800;
+//const SCREEN_HEIGHT_IN_PXS: i32 = 600;
 
 pub struct Renderer {canvas: WindowCanvas}
 pub struct Point (pub u16, pub u16);
 
+impl std::fmt::Display for Item {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
+
+fn item_to_file_name(item: Item) -> String {
+    let str = item.to_string() + ".png";
+    "textures/".to_string() + &str
+}
+
+pub fn index_to_point(index: u8) -> Point {
+    let i = index as u16;
+    match index {
+        0|1|2|3|4 => Point(i, 0),
+        5|6|7|8|9 => Point(i-5, 1),
+        10|11|12|13|14 => Point(i-10, 1),
+        15|16|17|18|19 => Point(i-15, 1),
+        _ => panic!("Index out of range!"),
+    }
+}
 impl Renderer {
     pub fn new(window: Window ) -> Result<Renderer, String> {
         let canvas = window.into_canvas().build().map_err(|e| e.to_string())?;
         Ok(Renderer{canvas})
     }
-
-    pub fn draw_item(&mut self, item: Item, point: &Point) -> Result<(), String>{
+    pub fn draw_item(&mut self, item: Item, point: Point) -> Result<(), String>{
         let x_offset = point.0 as i32 * TILE_SIZE_IN_PXS;
         let y_offset = point.1 as i32 * TILE_SIZE_IN_PXS;
-
-        match item {
-            Item::Empty => {
-                
-                Ok(())
-            },
-            _ => Ok(()),
+        let file_name = item_to_file_name(item);
+        let file_path = Path::new(&file_name);
+        let texture_creator = self.canvas.texture_creator();
+        let texture = texture_creator.load_texture(file_path)?;
+        let draw_rect = Rect::new(x_offset, y_offset, 120, 120);
+        self.canvas.copy(&texture, None, Some(draw_rect))?;
+        Ok(())
+    }
+    pub fn draw_slots(&mut self, items: Vec<Item>) -> Result<(), String> {
+        for i in 0..items.len() {
+            self.draw_item(items[i], index_to_point(i as u8))?;
         }
-    }
-
-    pub fn draw_tile(&mut self, point: &Point, item: Item) -> Result<(), String> {
-        let Point(x,y) = point;
-        // Background color for the slotmachine 
-        self.canvas.set_draw_color(Color::RGB(69, 71, 90));
-        self.canvas.fill_rect(Rect::new(
-            *x as i32 * TILE_SIZE_IN_PXS as i32,
-            *y as i32 * TILE_SIZE_IN_PXS as i32,
-            TILE_SIZE_IN_PXS as u32,
-            TILE_SIZE_IN_PXS as u32,
-        ))?;
-        
-        self.draw_item(item, point);
-
-        self.canvas.present();
         Ok(())
     }
-    
     pub fn draw_ui(&mut self) -> Result<(), String> {
-        
-        
         Ok(())
     }
-
     pub fn render(&mut self, items: Vec<Item>) -> Result<(), String> {
-        self.canvas.set_draw_color(Color::RGB(30, 30, 46));
         self.canvas.clear();
-        
+        self.draw_ui()?;
+        self.draw_slots(items)?;
         self.canvas.present();
         Ok(())
     }
