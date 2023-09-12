@@ -18,34 +18,34 @@ pub enum Direction {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Item {
-    Empty,
-    Apple,
-    Diamond,
-    Anchor,
-    Beehive,
-    Honey,
-    Diamonds,
-    Spades,
-    Hearts,
-    Clubs,
-    CardShark,
-    Wildcard,
     Amethyst(u16),
-    LightBulb(u8),
-    Dame,
+    Anchor,
+    Apple,
+    Beehive,
+    BronzeArrow(Direction),
     BuffingCapsule,
+    CardShark,
     Cheese,
     Cherry,
+    Clubs,
     CoconutHalf,
     Coin,
+    Dame,
+    Diamond,
+    Diamonds,
+    Empty,
     Flower,
+    GoldArrow(Direction),
     GoldenEgg,
+    Hearts,
+    Honey,
+    LightBulb(u8),
     Martini,
     MatryoshkaDollFive,
     Milk,
-    BronzeArrow(Direction),
     SilverArrow(Direction),
-    GoldArrow(Direction),
+    Spades,
+    Wildcard,
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
@@ -146,14 +146,14 @@ impl SlotMachine {
         }
     }
 
-    pub fn base_value_array(items: Vec<Item>) -> Vec<u64> {
-        let mut ret_vec: Vec<u64> = vec![];
+    pub fn base_value_array(items: Vec<Item>) -> Vec<i64> {
+        let mut ret_vec: Vec<i64> = vec![];
         for i in 0..20 {
             let adjecents: Vec<u8> = is_adjecent(i as u8);
             match items[i] {
                 Item::Apple => ret_vec.push(3),
                 Item::Diamond => {
-                    let mut diamond_value: u64 = 5;
+                    let mut diamond_value: i64 = 5;
                     for x in 0..adjecents.len() {
                         if items[adjecents[x] as usize] == Item::Diamond {
                             diamond_value += 1
@@ -201,7 +201,7 @@ impl SlotMachine {
         ret_vec
     }
 
-    pub fn multipliers(items: Vec<Item>, value_vec: Vec<u64>) -> u128 {
+    pub fn multipliers(items: Vec<Item>, value_vec: Vec<i64>) -> i128 {
         let mut mut_value_vec = value_vec.clone();
         for i in 0..items.len() {
             let adjecents: Vec<u8> = is_adjecent(i as u8);
@@ -267,14 +267,14 @@ impl SlotMachine {
                 _ => (),
             }
         }
-        mut_value_vec.iter().fold(0, |acc, x| acc + *x as u128)
+        mut_value_vec.iter().fold(0, |acc, x| acc + *x as i128)
     }
-    pub fn value_calc(&mut self, items: Vec<Item>) -> (u128, Vec<Item>) {
+    pub fn value_calc(&mut self, items: Vec<Item>) -> (i128, Vec<Item>) {
         let event_items = events(items.clone());
         let value_vec = Self::base_value_array(event_items.clone());
         (Self::multipliers(items, value_vec), event_items)
     }
-    pub fn calculate(&mut self, items: Vec<Item>) -> (u128, Vec<Item>, SlotMachine) {
+    pub fn calculate(&mut self, items: Vec<Item>) -> (i128, Vec<Item>, SlotMachine) {
         let (temp_items, cards): (Vec<Item>, Vec<(u8, Item)>) =
             Self::preprocessing(items.clone()).unwrap_or((items, vec![]));
         let (val, its) = self.value_calc(temp_items);
