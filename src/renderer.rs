@@ -71,6 +71,7 @@ impl Renderer {
         Ok(())
     }
     pub fn draw_slots(&mut self, items: Vec<Item>) -> Result<(), String> {
+        println!("{:?}", items);
         for i in 0..items.len() {
             self.draw_item(items[i], index_to_point(i as u8))?;
         }

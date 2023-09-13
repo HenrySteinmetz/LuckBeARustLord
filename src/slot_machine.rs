@@ -63,29 +63,29 @@ pub struct SlotMachine {
 
 pub fn roll(items: Vec<Item>) -> Vec<Item> {
     let mut mut_copy = items.clone();
+    let mut ret_vec: Vec<Item> = vec![];
     if mut_copy.len() >= 20 {
         let mut rng = rand::thread_rng();
         let empty = get_empty(items).vector_pos;
         match empty {
-             Some(_) => {
-                mut_copy.remove(empty.unwrap());
+            Some(_) => {
+                if !mut_copy.len() >= 20 {mut_copy.remove(empty.unwrap());}
             }
-            None => {
-                for _ in 0..20 {
-                    let items_size: usize = mut_copy.len();
-                    let rand_num: usize = rng.gen_range(0..items_size);
-                    let item = mut_copy[rand_num];
-                    mut_copy.remove(rand_num);
-                    mut_copy.push(item);
-                }
-            },
+            _ => (),
         }
-        mut_copy
+        for _ in 0..20 {
+            let items_size: usize = mut_copy.len();
+            let rand_num: usize = rng.gen_range(0..items_size);
+            let item = mut_copy[rand_num];
+            mut_copy.remove(rand_num);
+            ret_vec.push(item);
+        }
+        ret_vec
     } else {
         while mut_copy.len() < 20 {
             mut_copy.push(Item::Empty);
         };
-        mut_copy
+        ret_vec
     }
 }
 
