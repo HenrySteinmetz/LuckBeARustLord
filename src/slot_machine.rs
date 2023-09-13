@@ -22,9 +22,21 @@ pub enum Item {
     Amethyst(u16),
     Anchor,
     Apple,
+    Banana,
+    BananaPeel,
+    BarOfSoap,
+    Bartender,
+    Bear,
+    Beastmaster,
     Bee,
     Beehive,
+    Beer,
+    BigOre,
+    BigUrn,
+    Billionaire,
+    BountyHunter,
     BronzeArrow(Direction),
+    Bubble,
     BuffingCapsule,
     CardShark,
     Cheese,
@@ -189,34 +201,6 @@ impl SlotMachine {
         for i in 0..20 {
             let adjecents: Vec<usize> = is_adjecent(i as u8);
             match items[i] {
-                Item::Apple => ret_vec.push(3),
-                Item::Diamond => {
-                    let mut diamond_value: i64 = 5;
-                    for x in 0..adjecents.len() {
-                        if items[adjecents[x]] == Item::Diamond {
-                            diamond_value += 1
-                        }
-                    }
-                    ret_vec.push(diamond_value);
-                }
-                Item::Anchor => ret_vec.push(match i {
-                    0 | 4 | 15 | 19 => 5,
-                    _ => 1,
-                }),
-                Item::Bee => {
-                    let mut val: i64 = 0;
-                    for x in 0..adjecents.len() {
-                        match items[adjecents[x]] {
-                            Item::Flower|Item::Beehive|Item::Honey => {
-                                val += 1;
-                            },
-                            _ => (),
-                        }
-                    }
-                    ret_vec.push(val);
-                },
-                Item::Beehive => ret_vec.push(3),
-                Item::Honey => ret_vec.push(3),
                 Item::Amethyst(mut amethyst_value) => {
                     let mut temp_value = 0;
                     for x in 0..adjecents.len() {
@@ -234,12 +218,41 @@ impl SlotMachine {
                         }
                     }
                 }
+                Item::Anchor => ret_vec.push(match i {
+                    0 | 4 | 15 | 19 => 5,
+                    _ => 1,
+                }),
+                Item::Apple => ret_vec.push(3),
+                Item::Beastmaster => ret_vec.push(2),
+                Item::Bee => {
+                    let mut val: i64 = 0;
+                    for x in 0..adjecents.len() {
+                        match items[adjecents[x]] {
+                            Item::Flower|Item::Beehive|Item::Honey => {
+                                val += 1;
+                            },
+                            _ => (),
+                        }
+                    }
+                    ret_vec.push(val);
+                },
+                Item::Beehive => ret_vec.push(3),
                 Item::Cheese => ret_vec.push(3),
                 Item::Cherry => ret_vec.push(1),
                 Item::CoconutHalf => ret_vec.push(2),
                 Item::Coin => ret_vec.push(1),
+                Item::Diamond => {
+                    let mut diamond_value: i64 = 5;
+                    for x in 0..adjecents.len() {
+                        if items[adjecents[x]] == Item::Diamond {
+                            diamond_value += 1
+                        }
+                    }
+                    ret_vec.push(diamond_value);
+                }
                 Item::Flower => ret_vec.push(1),
                 Item::GoldenEgg => ret_vec.push(4),
+                Item::Honey => ret_vec.push(3),
                 Item::Martini => ret_vec.push(3),
                 Item::MatryoshkaDollFive => ret_vec.push(4),
                 Item::Milk => ret_vec.push(1),
