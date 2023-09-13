@@ -171,7 +171,6 @@ impl SlotMachine {
                     let val: i64 = 0;
                     match item[adjecents[x] as usize] {
                         Item::Flower|Item::Beehive|Item::Honey => {
-                            vector[adjecents[x] as usize] *= 2;
                             val += 1;
                         },
                         _ => (),
@@ -222,6 +221,14 @@ impl SlotMachine {
                 Item::BuffingCapsule => {
                     for x in 0..adjecents.len() {
                         mut_value_vec[adjecents[x] as usize] *= 2;
+                    }
+                },
+                Item::Bee => {
+                    match item[adjecents[x] as usize] {
+                        Item::Flower|Item::Beehive|Item::Honey => {
+                            mut_value_vec[adjecents[x] as usize] *= 2;
+                        },
+                        _ => (),
                     }
                 }
                 Item::Dame => {
