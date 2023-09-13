@@ -57,6 +57,7 @@ pub enum Item {
     Martini,
     MatryoshkaDollFive,
     Milk,
+    Monkey,
     SilverArrow(Direction),
     Spades,
     Wildcard,
@@ -78,13 +79,6 @@ pub fn roll(items: Vec<Item>) -> Vec<Item> {
     let mut ret_vec: Vec<Item> = vec![];
     if mut_copy.len() >= 20 {
         let mut rng = rand::thread_rng();
-        let empty = get_empty(items).vector_pos;
-        match empty {
-            Some(_) => {
-                if !mut_copy.len() >= 20 {mut_copy.remove(empty.unwrap());}
-            }
-            _ => (),
-        }
         for _ in 0..20 {
             let items_size: usize = mut_copy.len();
             let rand_num: usize = rng.gen_range(0..items_size);
@@ -136,6 +130,7 @@ impl SlotMachine {
     }
 
     pub fn preprocessing(items: Vec<Item>) -> Option<(Vec<Item>, Vec<(u8, Item)>)> {
+
         // Indecies of all cards that are adjecent to a card shark with their type
         let mut indecies_cards: Vec<(u8, Item)> = vec![];
         // Mutable copy of the input vector
@@ -158,7 +153,6 @@ impl SlotMachine {
                 _ => (),
             }
         }
-        println!("{}", indecies_cards.len());
         copy_items = Self::convert_cards(copy_items);
 
         if !indecies_cards.len() == 0 {
@@ -196,7 +190,8 @@ impl SlotMachine {
         (ret_items, ret_add_items_vec)
     }
 
-    pub fn base_value_array(items: Vec<Item>) -> Vec<i64> {
+    pub fn base_value_array(items: Vec<Item>) -> (Vec<Item>, Vec<i64>) {
+        let mut mut_copy = items.clone();
         let mut ret_vec: Vec<i64> = vec![];
         for i in 0..20 {
             let adjecents: Vec<usize> = is_adjecent(i as u8);
@@ -256,12 +251,13 @@ impl SlotMachine {
                 Item::Martini => ret_vec.push(3),
                 Item::MatryoshkaDollFive => ret_vec.push(4),
                 Item::Milk => ret_vec.push(1),
+                Item::Monkey => ret_vec.push(1),
                 Item::BuffingCapsule => ret_vec.push(0),
                 Item::Empty => ret_vec.push(0),
                 _ => ret_vec.push(0),
             }
         }
-        ret_vec
+        (mut_copy, ret_vec)
     }
 
     pub fn multipliers(items: Vec<Item>, value_vec: Vec<i64>) -> i128 {
@@ -283,7 +279,15 @@ impl SlotMachine {
                             _ => (),
                         }
                     }
-
+                }
+                Item::Monkey => {
+                    for x in 0..adjecents.len() {
+                        match items[adjecents[x]] {
+                            // Add items need to be implemented
+                            Item::CoconutHalf|Item::Banana => mut_value_vec[i] = value_vec[adjecents[x]] * 6,
+                            _ => (),
+                        }
+                    }
                 }
                 Item::Dame => {
                     for x in 0..adjecents.len() {
@@ -348,7 +352,7 @@ impl SlotMachine {
     pub fn value_calc<'a>(&mut self, items: Vec<Item>) -> (i128, Vec<Item>, Vec<Box<dyn Fn(Vec<Item>) -> Vec<Item> + 'a >>) {
         let (event_items, ret_funcs) = Self::events(items.clone());
         let value_vec = Self::base_value_array(event_items.clone());
-        (Self::multipliers(event_items.clone(), value_vec), event_items, ret_funcs)
+        (Self::multipliers(value_vec.0, value_vec.1), event_items, ret_funcs)
     }
 
     pub fn postprocessing<'a>(items: Vec<Item>, funcs: Vec<Box<dyn Fn(Vec<Item>) -> Vec<Item> + 'a >>) -> Vec<Item> {

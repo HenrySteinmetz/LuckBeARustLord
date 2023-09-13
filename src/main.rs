@@ -12,7 +12,6 @@ use renderer::Renderer;
 fn main() -> Result<(), String> {
     // Gamestate init
     let (mut slot_machine, mut items) = SlotMachine::new();
-    let (mut money, mut items, slot_machine) = slot_machine.calculate(items);
     let mut game_state = slot_machine::State::Selecting;
 
     // Sdl init
@@ -25,11 +24,15 @@ fn main() -> Result<(), String> {
         .map_err(|e| e.to_string())?;
     let mut renderer = Renderer::new(window)?;
 
-    for _ in 0..20 {
-        items.push(Item::Coin);
+    for _ in 0..7 {
+        items = add_item(Item::Monkey, items.clone());
+        items = add_item(Item::CoconutHalf, items.clone());
+        items = add_item(Item::Wildcard, items.clone());
     }
-    items = roll(items);
 
+    items = roll(items);
+    let (mut money, items, slot_machine) = slot_machine.calculate(items);
+    
     'mainloop: loop {
         renderer.render(items.clone(), money)?;
             for event in sdl_context.event_pump()?.poll_iter() {

@@ -44,10 +44,10 @@ pub fn index_to_point(index: u8) -> Point {
         _ => panic!("Index out of range!"),
     }
 }
-pub fn text_to_surface(text: String, size: u16) -> Surface<'static> {
+pub fn text_to_surface(text: String) -> Surface<'static> {
     let ttf_context = sdl2::ttf::init().map_err(|e| e.to_string()).unwrap();
     let path = std::path::Path::new("fonts/Minecraft.ttf");
-    let mut font = ttf_context.load_font(path, size).unwrap();
+    let mut font = ttf_context.load_font(path, 100).unwrap();
     font.set_style(sdl2::ttf::FontStyle::NORMAL);
     let surface = font.render(&text.to_owned()).blended(Color::RGB(205,214,244)).map_err(|e| e.to_string()).unwrap();
     surface
@@ -71,7 +71,6 @@ impl Renderer {
         Ok(())
     }
     pub fn draw_slots(&mut self, items: Vec<Item>) -> Result<(), String> {
-        println!("{:?}", items);
         for i in 0..items.len() {
             self.draw_item(items[i], index_to_point(i as u8))?;
         }
@@ -86,7 +85,7 @@ impl Renderer {
         }
         // Points
         let texture_creator = self.canvas.texture_creator();
-        let coins_text = text_to_surface(coins.to_string(), 20);
+        let coins_text = text_to_surface(coins.to_string());
         self.canvas.copy(&texture_creator.create_texture_from_surface(coins_text).unwrap(), None, Some(Rect::new(1600, 50, 50, 50)))?;
 
         Ok(())

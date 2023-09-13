@@ -37,17 +37,29 @@ pub fn get_empty(items: Vec<Item>) -> LastEmpty {
         }
     }
 }
+
+pub fn get_all_empty(items: Vec<Item>) -> Vec<LastEmpty> {
+    let mut result = vec![];
+    for i in 0..items.len() {
+        if items[i] == Item::Empty {
+            result.push(LastEmpty{ vector_pos: Some(i) });
+        }
+    }
+    result
+}
+
 // Is always called at the end of the selection
-pub fn add_item(item: Item, items: &mut Vec<Item>) -> Vec<Item> {
+pub fn add_item(item: Item, items:  Vec<Item>) -> Vec<Item> {
+    let mut mut_copy = items.clone();
     let empty = get_empty(items.to_vec());
     match empty.vector_pos {
         Some(_) => {
-            items.remove(empty.vector_pos.unwrap());
-            items.push(item);
+            mut_copy.remove(empty.vector_pos.unwrap());
+            mut_copy.push(item);
         }
-        None => items.push(item),
+        None => mut_copy.push(item),
     }
-    items.to_vec()
+    mut_copy
 }
 pub fn remove_empty(items: Vec<Item>) -> Vec<Item> {
     let mut ret_items = items.clone();
