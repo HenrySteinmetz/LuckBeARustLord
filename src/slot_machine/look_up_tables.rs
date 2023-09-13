@@ -144,59 +144,60 @@ pub fn arrow_lookup(arrow: Item, location: u8) -> Option<Vec<u8>> {
     }
 }
 
-pub fn is_adjecent(index: u8) -> Vec<u8> {
-    match index {
+pub fn is_adjecent(index: u8) -> Vec<usize> {
+    let ind = index as usize;
+    match ind {
         0 => {
-            let vec: Vec<u8> = vec![1, 5, 6];
+            let vec: Vec<usize> = vec![1, 5, 6];
             return vec;
         }
         1 | 2 | 3 => {
-            let vec: Vec<u8> = vec![index - 1, index + 1, index + 4, index + 5, index + 6];
+            let vec: Vec<usize> = vec![ind - 1, ind + 1, ind + 4, ind + 5, ind + 6];
             return vec;
         }
         4 => {
-            let vec: Vec<u8> = vec![3, 8, 9];
+            let vec: Vec<usize> = vec![3, 8, 9];
             return vec;
         }
         5 => {
-            let vec: Vec<u8> = vec![0, 1, 6, 10, 11];
+            let vec: Vec<usize> = vec![0, 1, 6, 10, 11];
             return vec;
         }
         6 | 7 | 8 | 11 | 12 | 13 => {
-            let vec: Vec<u8> = vec![
-                index - 6,
-                index - 5,
-                index - 4,
-                index - 1,
-                index + 1,
-                index + 4,
-                index + 5,
-                index + 6,
+            let vec: Vec<usize> = vec![
+                ind - 6,
+                ind - 5,
+                ind - 4,
+                ind - 1,
+                ind + 1,
+                ind + 4,
+                ind + 5,
+                ind + 6,
             ];
             return vec;
         }
         9 => {
-            let vec: Vec<u8> = vec![3, 4, 8, 13, 14];
+            let vec: Vec<usize> = vec![3, 4, 8, 13, 14];
             return vec;
         }
         10 => {
-            let vec: Vec<u8> = vec![5, 6, 11, 15, 16];
+            let vec: Vec<usize> = vec![5, 6, 11, 15, 16];
             return vec;
         }
         14 => {
-            let vec: Vec<u8> = vec![8, 9, 13, 18, 19];
+            let vec: Vec<usize> = vec![8, 9, 13, 18, 19];
             return vec;
         }
         15 => {
-            let vec: Vec<u8> = vec![10, 11, 16];
+            let vec: Vec<usize> = vec![10, 11, 16];
             return vec;
         }
         16 | 17 | 18 => {
-            let vec: Vec<u8> = vec![index - 6, index - 5, index - 4, index - 1, index + 1];
+            let vec: Vec<usize> = vec![ind - 6, ind - 5, ind - 4, ind - 1, ind + 1];
             return vec;
         }
         19 => {
-            let vec: Vec<u8> = vec![13, 14, 18];
+            let vec: Vec<usize> = vec![13, 14, 18];
             return vec;
         }
         _ => {

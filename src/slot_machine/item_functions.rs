@@ -1,30 +1,26 @@
 use crate::Item;
-use rand::Rng;
 
 pub struct LastEmpty {
-    vector_pos: Option<usize>,
+    pub vector_pos: Option<usize>,
 }
-// This is the function to add all random symbols and manage symbol lifetimes
-pub fn events(items: Vec<Item>) -> Vec<Item> {
-    let mut ret_items = items.clone();
-    let mut emptys_to_remove: u8 = 0;
-    for i in 0..20 {
-        match ret_items[i] {
-            Item::Beehive => {
-                let mut rng = rand::thread_rng();
-                if rng.gen_range(0..10) == 9 {
-                    ret_items = add_item(Item::Honey, &mut ret_items);
-                }
-            }
-            Item::LightBulb(0) => {
-                emptys_to_remove += 1;
-                ret_items[i] = Item::Empty;
-            }
-            Item::LightBulb(mut x) => x -= 1,
-            _ => (),
-        }
+// The death starts now
+pub fn higher_order_add_items<'a>(items: Vec<Item>) -> Vec<Box<dyn Fn(Vec<Item>) -> Vec<Item> + 'a >> {
+    let mut ret_vec: Vec<Box<dyn Fn(Vec<Item>) -> Vec<Item> + 'a>> = vec![];
+    for item in items {
+         ret_vec.push(Box::new(move |items: Vec<Item>| {
+            let mut mut_items = items.clone();
+            mut_items.push(item);
+            mut_items
+        }));               
     }
-    ret_items
+    ret_vec
+}
+pub fn higher_order_add_item<'a>(item: Item ) -> Box<dyn Fn(Vec<Item>) -> Vec<Item> + 'a > {
+        Box::new(move |items: Vec<Item>| {
+            let mut mut_items = items.clone();
+            mut_items.push(item);
+            mut_items
+        })
 }
 pub fn get_empty(items: Vec<Item>) -> LastEmpty {
     let mut latest_empty: usize = 999;
