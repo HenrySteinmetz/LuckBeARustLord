@@ -148,6 +148,7 @@ impl SlotMachine {
     }
 
     pub fn base_value_array(items: Vec<Item>) -> Vec<i64> {
+        let mut item_copy = items.clone();
         let mut ret_vec: Vec<i64> = vec![];
         for i in 0..20 {
             let adjecents: Vec<u8> = is_adjecent(i as u8);
