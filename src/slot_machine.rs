@@ -148,6 +148,7 @@ impl SlotMachine {
     }
 
     pub fn base_value_array(items: Vec<Item>) -> Vec<i64> {
+        let mut item_copy = items.clone();
         let mut ret_vec: Vec<i64> = vec![];
         for i in 0..20 {
             let adjecents: Vec<u8> = is_adjecent(i as u8);
@@ -166,6 +167,16 @@ impl SlotMachine {
                     0 | 4 | 15 | 19 => 5,
                     _ => 1,
                 }),
+                Item::Bee => {
+                    let val: i64 = 0;
+                    match item[adjecents[x] as usize] {
+                        Item::Flower|Item::Beehive|Item::Honey => {
+                            val += 1;
+                        },
+                        _ => (),
+                    }
+                    ret_vec.push(val);
+                },
                 Item::Beehive => ret_vec.push(3),
                 Item::Honey => ret_vec.push(3),
                 Item::Amethyst(mut amethyst_value) => {
@@ -210,6 +221,14 @@ impl SlotMachine {
                 Item::BuffingCapsule => {
                     for x in 0..adjecents.len() {
                         mut_value_vec[adjecents[x] as usize] *= 2;
+                    }
+                },
+                Item::Bee => {
+                    match item[adjecents[x] as usize] {
+                        Item::Flower|Item::Beehive|Item::Honey => {
+                            mut_value_vec[adjecents[x] as usize] *= 2;
+                        },
+                        _ => (),
                     }
                 }
                 Item::Dame => {

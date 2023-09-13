@@ -4,6 +4,7 @@ use sdl2::rect::Rect;
 use sdl2::pixels::Color;
 use sdl2::image::LoadTexture;
 use std::path::Path;
+use sdl2::render::Texture;
 use crate::Item;
 use sdl2::rect::Point as SdlPoint;
 use sdl2::render::TextureQuery;
@@ -73,6 +74,18 @@ impl Renderer {
         let draw_rect = Rect::new(x_offset, y_offset, 120, 120);
         self.canvas.copy(&texture, None, Some(draw_rect))?;
         Ok(())
+    }
+    pub fn text_to_texture(&mut self, text: &str) -> Box<Texture> {
+        let mut font = ttf_context.load_font("fonts/pixelated.ttf", 20).unwrap();
+        font.set_style(sdl2::ttf::FontStyle::NORMAL);
+        let surface = font
+            .render(text)
+            .blended(Color::RGBA(255, 0, 0, 255))
+            .map_err(|e| e.to_string()).unwrap();
+        let texture = texture_creator
+            .create_texture_from_surface(&surface)
+            .map_err(|e| e.to_string()).unwrap();
+        Box::new(texture)
     }
     pub fn draw_slots(&mut self, items: Vec<Item>) -> Result<(), String> {
         for i in 0..items.len() {
