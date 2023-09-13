@@ -195,8 +195,8 @@ impl SlotMachine {
                 Item::MatryoshkaDollFive => ret_vec.push(4),
                 Item::Milk => ret_vec.push(1),
                 Item::BuffingCapsule => ret_vec.push(0),
-                Item::Empty => (),
-                _ => (),
+                Item::Empty => ret_vec.push(0),
+                _ => ret_vec.push(0),
             }
         }
         ret_vec

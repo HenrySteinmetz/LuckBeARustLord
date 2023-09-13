@@ -1,10 +1,12 @@
-use sdl2::render::WindowCanvas;
+use sdl2::render::{WindowCanvas, Texture};
 use sdl2::video::Window;
 use sdl2::rect::Rect;
 use sdl2::pixels::Color;
 use sdl2::image::LoadTexture;
 use std::path::Path;
 use crate::Item;
+use sdl2::rect::Point as SdlPoint;
+use sdl2::render::TextureQuery;
 
 const TILE_SIZE_IN_PXS: i32 = 120;
 // Temporary 
@@ -42,10 +44,24 @@ pub fn index_to_point(index: u8) -> Point {
         _ => panic!("Index out of range!"),
     }
 }
+
+
 impl Renderer {
     pub fn new(window: Window ) -> Result<Renderer, String> {
         let canvas = window.into_canvas().build().map_err(|e| e.to_string())?;
         Ok(Renderer{canvas})
+    }
+    pub fn text_to_texture(&mut self, text: &str) -> Texture  {
+        let ttf_context = sdl2::ttf::init().map_err(|e| e.to_string()).unwrap();
+        let texture_creator = self.canvas.texture_creator();
+        let path = std::path::Path::new("fonts/pixelated.ttf");
+        let mut font = ttf_context.load_font(path, 20).unwrap();
+        font.set_style(sdl2::ttf::FontStyle::NORMAL);
+        let surface = font.render(text).blended(Color::RGB(205,214,244)).map_err(|e| e.to_string()).unwrap();
+        let texture = texture_creator.create_texture_from_surface(&surface).map_err(|e| e.to_string()).unwrap();
+        let texture_clone = &texture;
+        return *texture_clone;
+    
     }
     pub fn draw_item(&mut self, item: Item, point: Point) -> Result<(), String>{
         let x_offset = point.0 as i32 * TILE_SIZE_IN_PXS + 660;
@@ -65,15 +81,19 @@ impl Renderer {
         Ok(())
     }
     pub fn draw_ui(&mut self) -> Result<(), String> {
+        self.canvas.draw_rect(Rect::new(659, 239, 602, 482))?;
+        for x in 0..5 {
+            self.canvas.draw_line(SdlPoint::new(x*120+780, 240), SdlPoint::new(x*120+780, 720))?;
+            self.canvas.draw_line(SdlPoint::new(x*120+780, 240), SdlPoint::new(x*120+780, 720))?;
+        }
         Ok(())
     }
     pub fn render(&mut self, items: Vec<Item>) -> Result<(), String> {
-        self.canvas.set_draw_color(Color::BLACK);
+        self.canvas.set_draw_color(Color::RGB(30, 30, 46));
         self.canvas.clear();
         self.canvas.set_draw_color(Color::WHITE);
-        self.canvas.draw_rect(Rect::new(660, 240, 600, 480))?;
-        self.draw_ui()?;
         self.draw_slots(items)?;
+        self.draw_ui()?;
         self.canvas.present();
         Ok(())
     }
