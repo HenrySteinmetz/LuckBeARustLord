@@ -60,7 +60,7 @@ impl Renderer {
         Ok(())
     }
     pub fn text_to_texture(&mut self, text: &str) -> Box<Texture> {
-        let mut font = ttf_context.load_font(font_path, 128)?;
+        let mut font = ttf_context.load_font("fonts/pixelated.ttf", 20).unwrap();
         font.set_style(sdl2::ttf::FontStyle::NORMAL);
         let surface = font
             .render(text)
