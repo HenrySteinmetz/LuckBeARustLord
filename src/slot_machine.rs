@@ -167,6 +167,17 @@ impl SlotMachine {
                     0 | 4 | 15 | 19 => 5,
                     _ => 1,
                 }),
+                Item::Bee => {
+                    let val: i64 = 0;
+                    match item[adjecents[x] as usize] {
+                        Item::Flower|Item::Beehive|Item::Honey => {
+                            vector[adjecents[x] as usize] *= 2;
+                            val += 1;
+                        },
+                        _ => (),
+                    }
+                    ret_vec.push(val);
+                },
                 Item::Beehive => ret_vec.push(3),
                 Item::Honey => ret_vec.push(3),
                 Item::Amethyst(mut amethyst_value) => {
