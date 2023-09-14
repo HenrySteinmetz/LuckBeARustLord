@@ -173,7 +173,6 @@ pub fn base_value_array(items: Vec<Item>) -> (Vec<Item>, Vec<i64>) {
             }),
             Item::Apple => ret_vec.push(3),
             Item::Bartender => ret_vec.push(3),
-            Item::Beastmaster => ret_vec.push(2),
             Item::Bear => {
                 let mut val: i64 = 2;
                 for x in 0..adjecents.len() {
@@ -185,8 +184,9 @@ pub fn base_value_array(items: Vec<Item>) -> (Vec<Item>, Vec<i64>) {
                         _ => (),
                     }
                 }
-                ret_vec.push(val)
+                ret_vec.push(val);
             }
+            Item::Beastmaster => ret_vec.push(2),
             Item::Bee => {
                 let mut val: i64 = 1;
                 for x in 0..adjecents.len() {
