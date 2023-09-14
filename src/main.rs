@@ -3,7 +3,8 @@ use sdl2::keyboard::Keycode;
 use std::time::Duration;
 
 mod slot_machine;
-use slot_machine::item_functions::add_item;
+use crate::calculate::add_item;
+use crate::calculate::roll;
 use slot_machine::*;
 
 mod renderer;
