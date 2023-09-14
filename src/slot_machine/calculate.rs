@@ -130,6 +130,7 @@ pub fn base_value_array(items: Vec<Item>) -> (Vec<Item>, Vec<i64>) {
                         _ => (),
                     }
                 }
+                ret_vec.push(temp_value as i64)
             }
             Item::Anchor => ret_vec.push(match i {
                 0 | 4 | 15 | 19 => 5,
@@ -158,7 +159,7 @@ pub fn base_value_array(items: Vec<Item>) -> (Vec<Item>, Vec<i64>) {
             Item::Coin => ret_vec.push(1),
             Item::Chicken => ret_vec.push(2),
             Item::Clubs => {
-                let mut val: i32 = 0;
+                let mut val: i64 = 1;
                 for x in 0..adjecents.len() {
                     match items[adjecents[x]] {
                         Item::Clubs|Item::Spades|Item::Diamonds|Item::Hearts => {
@@ -167,6 +168,7 @@ pub fn base_value_array(items: Vec<Item>) -> (Vec<Item>, Vec<i64>) {
                         _ => (),
                     }
                 }
+                ret_vec.push(val)
             }
             Item::Diamond => {
                 let mut diamond_value: i64 = 5;
