@@ -59,7 +59,7 @@ pub fn preprocessing(items: Vec<Item>) -> Option<(Vec<Item>, Vec<(u8, Item)>)> {
         return None;
     }
 }
-// This is the function to add all random symbols and manage symbol lifetimes
+// This is the function to add all random symbols and manage, symbol lifetimes
 pub fn events<'a>(items: Vec<Item>) ->  (Vec<Item>, Vec<Box<dyn Fn(Vec<Item>) -> Vec<Item> + 'a >>) {
     let mut ret_items = items.clone();
     let mut ret_add_items_vec: Vec<Box<dyn Fn(Vec<Item>) -> Vec<Item> + 'a>> = vec![];
@@ -68,8 +68,15 @@ pub fn events<'a>(items: Vec<Item>) ->  (Vec<Item>, Vec<Box<dyn Fn(Vec<Item>) ->
             Item::Bartender => {
                 let mut rng = rand::thread_rng();
                 if rng.gen_range(0..10) == 9 {
-                    ret_add_items_vec.append: Vec<Item> = vec![Item::ChemicalSeven, Item::Beer, Item::Wine ,Item::Martini];
+                    match rng.gen_range(0..4) {
+                        0 => ret_add_items_vec.push(higher_order_add_item(Item::ChemicalSeven)),
+                        1 => ret_add_items_vec.push(higher_order_add_item(Item::Wine)),
+                        2 => ret_add_items_vec.push(higher_order_add_item(Item::Beer)),
+                        3 => ret_add_items_vec.push(higher_order_add_item(Item::Martini)),
+                        _ => (),
+                    }
                 }
+            }
             Item::Beehive => {
                 let mut rng = rand::thread_rng();
                 if rng.gen_range(0..10) == 9 {
@@ -82,10 +89,10 @@ pub fn events<'a>(items: Vec<Item>) ->  (Vec<Item>, Vec<Box<dyn Fn(Vec<Item>) ->
             }
             Item::Chicken => {
                 let mut rng = rand::thread_rng();
-                if rng.gen_range(0..10) == 9 {
-                    ret_add_items_vec.push(higher_order_add_item(Item::Egg));
-                if rng.gen_range(0..100) == 99 {
-                    ret_add_items_vec.push(higher_order_add_item(Item::GoldenEgg));
+                match rng.gen_range(0..100) {
+                    0|1|2|3|4|5|6|7|8|9 => ret_add_items_vec.push(higher_order_add_item(Item::Egg)),
+                    99 => ret_add_items_vec.push(higher_order_add_item(Item::GoldenEgg)),
+                    _ => (),
                 }
             }
             Item::LightBulb(0) => {
@@ -131,9 +138,8 @@ pub fn base_value_array(items: Vec<Item>) -> (Vec<Item>, Vec<i64>) {
             Item::Apple => ret_vec.push(3),
             Item::Bartender => ret_vec.push(3),
             Item::Beastmaster => ret_vec.push(2),
-            Item::Bee => ret_vec.push(1),
-            {
-                let mut val: i32 = 0;
+            Item::Bee => {
+                let mut val: i64 = 1;
                 for x in 0..adjecents.len() {
                     match items[adjecents[x]] {
                         Item::Flower|Item::Beehive|Item::Honey => {
@@ -143,7 +149,7 @@ pub fn base_value_array(items: Vec<Item>) -> (Vec<Item>, Vec<i64>) {
                     }
                 }
                 ret_vec.push(val);
-            },
+            }
             Item::Beehive => ret_vec.push(3),
             Item::Beer => ret_vec.push(1),
             Item::Cheese => ret_vec.push(3),
@@ -157,6 +163,10 @@ pub fn base_value_array(items: Vec<Item>) -> (Vec<Item>, Vec<i64>) {
                     match items[adjecents[x]] {
                         Item::Clubs|Item::Spades|Item::Diamonds|Item::Hearts => {
                             val += 1;
+                        }
+                        _ => (),
+                    }
+                }
             }
             Item::Diamond => {
                 let mut diamond_value: i64 = 5;
