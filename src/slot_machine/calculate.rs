@@ -236,6 +236,22 @@ pub fn base_value_array(items: Vec<Item>) -> (Vec<Item>, Vec<i64>) {
                 }
                 ret_vec.push(val);
             }
+            Item::Cultist => {
+                let mut val: i64 = 0;
+                let mut cultis_count: i64 = 0;
+                for x in 0..20 {
+                    match items[x] {
+                        Item::Cultist => cultis_count += 1,
+                        _ => (),
+                    }
+                }
+                match cultis_count {
+                    0 => (),
+                    1|2 => val = cultis_count,
+                    _ => val = cultis_count + 1,
+                }
+                ret_vec.push(val);
+            }
             Item::Diamond => {
                 let mut diamond_value: i64 = 5;
                 for x in 0..adjecents.len() {

@@ -36,13 +36,16 @@ fn main() -> Result<(), String> {
     }
 
     items = roll(items);
-    let (mut money, items, slot_machine) = slot_machine.calculate(items);
+    let (mut money, mut items, slot_machine) = slot_machine.calculate(items);
     
     'mainloop: loop {
         sdl_renderer.render(items.clone(), money)?;
             for event in sdl_context.event_pump()?.poll_iter() {
                 match event {
-                    Event::KeyDown {keycode: Option::Some(Keycode::Space),..} => (),
+                    Event::KeyDown {keycode: Option::Some(Keycode::Space),..} => {
+                        items = roll(items);
+                        sdl_renderer.render(items.clone(), money)?;
+                    },
                     Event::Quit {..} => break 'mainloop,
                     _ => {}
                 }
