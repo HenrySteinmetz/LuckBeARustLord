@@ -128,7 +128,24 @@ pub fn events<'a>(items: Vec<Item>) ->  (Vec<Item>, Option<Vec<Box<dyn Fn(Vec<It
                     _ => (),
                 }
             }
-
+            Item::Goose => {
+                let mut rng = rand::thread_rng();
+                    match rng.gen_range(0..100) {
+                    99 => {
+                        match get_empty(items.clone()).vector_pos {
+                            Some(x) => ret_items[x] = Item::GoldenEgg,
+                            None => ret_add_items_vec.push(higher_order_add_item(Item::GoldenEgg)),
+                        }
+                    }
+                    _ => (),
+                }
+            }
+            Item::KingMidas =>{
+                match get_empty(items.clone()).vector_pos {
+                    Some(x) => ret_items[x] = Item::Coin,
+                    None => ret_add_items_vec.push(higher_order_add_item(Item::Coin)),
+                }
+            }
             Item::LightBulb(mut x) => {
                 x -= 1;
                 ret_items[i] = Item::LightBulb(x);
@@ -205,7 +222,7 @@ pub fn base_value_array(items: Vec<Item>) -> (Vec<Item>, Vec<i64>) {
             Item::Cherry => ret_vec.push(1),
             Item::CoconutHalf => ret_vec.push(2),
             Item::Coin => ret_vec.push(1),
-            Item::Comedian => ret_vec.push(3)
+            Item::Comedian => ret_vec.push(3),
             Item::Chicken => ret_vec.push(2),
             Item::Clubs => {
                 let mut val: i64 = 1;
@@ -255,8 +272,22 @@ pub fn base_value_array(items: Vec<Item>) -> (Vec<Item>, Vec<i64>) {
                 }
                 ret_vec.push(val);
             }
+            Item::Farmer => ret_vec.push(2),
+            Item::FiveSidedDie => {
+                let mut val: i64 = 0;
+                let mut rng = rand::thread_rng();
+                    match rng.gen_range(0..5) {
+                        0 => val +=1,
+                        1 => val +=2,
+                        2 => val +=3,
+                        3 => val +=4,
+                        4 => val +=5,
+                        _ => (),
+                    }
+            }
             Item::Flower => ret_vec.push(1),
             Item::GoldenEgg => ret_vec.push(4),
+            Item::Goose => ret_vec.push(1),
             Item::Hearts => {
                 let mut val: i64 = 1;
                 for x in 0..adjecents.len() {
@@ -270,10 +301,15 @@ pub fn base_value_array(items: Vec<Item>) -> (Vec<Item>, Vec<i64>) {
                 ret_vec.push(val);
             }
             Item::Honey => ret_vec.push(3),
+            Item::Joker => ret_vec.push(3),
+            Item::KingMidas => ret_vec.push(1),
             Item::Martini => ret_vec.push(3),
             Item::MatryoshkaDollFive => ret_vec.push(4),
             Item::Milk => ret_vec.push(1),
             Item::Monkey => ret_vec.push(1),
+            Item::Pearl => ret_vec.push(1),
+            Item::Rain => ret_vec.push(2),
+            Item::Sapphire => ret_vec.push(2),
             Item::Spades => {
                 let mut val: i64 = 1;
                 for x in 0..adjecents.len() {
@@ -286,7 +322,19 @@ pub fn base_value_array(items: Vec<Item>) -> (Vec<Item>, Vec<i64>) {
                 }
                 ret_vec.push(val);
             }
-            Item::BuffingCapsule => ret_vec.push(0),
+            Item::Sun => ret_vec.push(3),
+            Item::FiveSidedDie => {
+                let mut val: i64 = 0;
+                let mut rng = rand::thread_rng();
+                    match rng.gen_range(0..3) {
+                        0 => val +=1,
+                        1 => val +=2,
+                        2 => val +=3,
+                        _ => (),
+                    }
+            }
+            Item::Wolf => ret_vec.push(2),
+            Item::BuffingCapsule => ret_vec.push(0), //warum?
             Item::Empty => ret_vec.push(0),
             _ => ret_vec.push(0),
         }
@@ -361,9 +409,43 @@ pub fn multipliers(items: Vec<Item>, value_vec: Vec<i64>) -> i128 {
             Item::Dame => {
                 for x in 0..adjecents.len() {
                     match items[adjecents[x]] {
-                        Item::Amethyst(_) | Item::Diamond => {
+                        Item::Amethyst(_) | Item::Diamond | Item::Emerald | Item::Pearl | Item::Ruby | 
+                        Item::Sapphire | Item::ShinyPebble | Item::VoidStone => {
                             mut_value_vec[adjecents[x]] *= 2
-                        } // das sind nicht alle gemstones wenn neue im enum auftachen füg sie bitte hinzu
+                        }
+                        _ => (),
+                    }
+                }
+            }
+            Item::Flower => {
+                for x in 0..adjecents.len() {
+                    match items[adjecents[x]] {
+                        Item::Rain => {
+                            mut_value_vec[adjecents[x]] *= 2
+                        }
+                        Item::Sun =>  {
+                            mut_value_vec[adjecents[x]] *= 5
+                        }
+                        _ => (),
+                    }
+                }
+            }
+            Item::Joker => {
+                for x in 0..adjecents.len() {
+                    match items[adjecents[x]] {
+                        Item::Clubs | Item::Diamonds | Item::Hearts | Item::Spades => {
+                            mut_value_vec[adjecents[x]] *= 2
+                        }
+                        _ => (),
+                    }
+                }
+            }
+            Item::KingMidas => {
+                for x in 0..adjecents.len() {
+                    match items[adjecents[x]] {
+                        Item::Coin => {
+                            mut_value_vec[adjecents[x]] *= 3;
+                        },
                         _ => (),
                     }
                 }
