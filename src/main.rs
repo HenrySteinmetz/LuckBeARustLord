@@ -23,7 +23,11 @@ fn main() -> Result<(), String> {
         .position_centered()
         .build()
         .map_err(|e| e.to_string())?;
-    let mut renderer = Renderer::new(window)?;
+
+    let mut sdl_renderer = Renderer::new(window)?;
+
+
+
 
     for _ in 0..7 {
         items = add_item(Item::Monkey, items.clone());
@@ -35,7 +39,7 @@ fn main() -> Result<(), String> {
     let (mut money, items, slot_machine) = slot_machine.calculate(items);
     
     'mainloop: loop {
-        renderer.render(items.clone(), money)?;
+        sdl_renderer.render(items.clone(), money)?;
             for event in sdl_context.event_pump()?.poll_iter() {
                 match event {
                     Event::KeyDown {keycode: Option::Some(Keycode::Space),..} => (),

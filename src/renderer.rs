@@ -10,8 +10,8 @@ use crate::Item;
 
 const TILE_SIZE_IN_PXS: i32 = 120;
 // Temporary 
-//const SCREEN_WIDTH_IN_PXS: i32 = 800;
-//const SCREEN_HEIGHT_IN_PXS: i32 = 600;
+//const SCREEN_WIDTH_IN_PXS: i32 = 1920;
+//const SCREEN_HEIGHT_IN_PXS: i32 = 1080;
 
 pub struct Renderer {canvas: WindowCanvas}
 #[derive(Debug)]
@@ -78,22 +78,31 @@ impl Renderer {
     }
     pub fn draw_ui(&mut self, coins: i128) -> Result<(), String> {
         // Slot grid
+        self.canvas.set_draw_color(Color::WHITE);
         self.canvas.draw_rect(Rect::new(659, 239, 602, 482))?;
         for x in 0..5 {
             self.canvas.draw_line(SdlPoint::new(x*120+780, 240), SdlPoint::new(x*120+780, 720))?;
             self.canvas.draw_line(SdlPoint::new(x*120+780, 240), SdlPoint::new(x*120+780, 720))?;
         }
-        // Points
+        // Texture creator for the entire function
         let texture_creator = self.canvas.texture_creator();
+
+        // Points
         let coins_text = text_to_surface(coins.to_string());
         self.canvas.copy(&texture_creator.create_texture_from_surface(coins_text).unwrap(), None, Some(Rect::new(1600, 50, 50, 50)))?;
+
+        // Spin button
+        let spin = text_to_surface(String::from("Spin"));
+        let spin_rect = Rect::new(1920/2-100, 750, 200, 100);
+        self.canvas.set_draw_color(Color::RGB(69, 71, 90));
+        self.canvas.fill_rect(spin_rect)?;
+        self.canvas.copy(&texture_creator.create_texture_from_surface(spin).unwrap(), None, Some(spin_rect))?;
 
         Ok(())
     }
     pub fn render(&mut self, items: Vec<Item>, coins: i128) -> Result<(), String> {
         self.canvas.set_draw_color(Color::RGB(30, 30, 46));
         self.canvas.clear();
-        self.canvas.set_draw_color(Color::WHITE);
         self.draw_slots(items)?;
         self.draw_ui(coins)?;
         self.canvas.present();

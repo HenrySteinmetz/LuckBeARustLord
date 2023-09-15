@@ -185,7 +185,7 @@ pub fn base_value_array(items: Vec<Item>) -> (Vec<Item>, Vec<i64>) {
                         _ => (),
                     }
                 }
-                ret_vec.push(val)
+                ret_vec.push(val);
             }
             Item::Bee => {
                 let mut val: i64 = 1;

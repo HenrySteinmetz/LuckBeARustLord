@@ -179,7 +179,6 @@ pub struct SlotMachine {
     state: State,
 }
 
-
 impl SlotMachine {
     pub fn new() -> (SlotMachine, Vec<Item>) {
         let mut items: Vec<Item> = vec![];
