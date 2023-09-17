@@ -5,7 +5,7 @@ use look_up_tables::*;
 use rand::Rng;
 use crate::Item;
 use crate::Direction;
-
+//yeet
 pub fn convert_cards(items: Vec<Item>) -> Vec<Item> {
     let mut copy_items = items.clone();
     for i in 0..items.len() {
