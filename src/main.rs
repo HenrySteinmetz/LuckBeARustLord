@@ -1,8 +1,6 @@
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use std::time::Duration;
-use sdl2::video::gl_attr::GLAttr;
-
 
 mod slot_machine;
 use crate::calculate::add_item;
@@ -43,7 +41,6 @@ fn main() -> Result<(), String> {
             for event in sdl_context.event_pump()?.poll_iter() {
                 match game_state {
                     State::Normal => {
-                        println!("normal");
                         match event {
                             Event::KeyDown {keycode: Some(Keycode::Space),..} => {
                                 items = roll(items.clone());
@@ -58,7 +55,6 @@ fn main() -> Result<(), String> {
                     }
 
                     State::Paused => {
-                        println!("paused");
                         match event {
                             Event::KeyDown {keycode: Some(Keycode::Escape),..} => game_state = State::Normal,
                             Event::Quit {..} => break 'mainloop,

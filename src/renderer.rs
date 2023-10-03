@@ -48,14 +48,13 @@ pub fn index_to_point(index: u8) -> Point {
 pub fn text_to_surface(text: String) -> Surface<'static> {
     let ttf_context = sdl2::ttf::init().map_err(|e| e.to_string()).unwrap();
     let path = std::path::Path::new("fonts/Minecraft.ttf");
-    let mut font = ttf_context.load_font(path, 100).unwrap();
+    let mut font = ttf_context.load_font(path, 300).unwrap();
     font.set_style(sdl2::ttf::FontStyle::NORMAL);
     let surface = font.render(&text.to_owned()).blended(Color::RGB(205,214,244)).map_err(|e| e.to_string()).unwrap();
     surface
 }
 
 impl Renderer {
-    
     pub fn new(window: Window, screen_width: i32, screen_height: i32 ) -> Result<Renderer, String> {
         let canvas = window.into_canvas().accelerated().build().map_err(|e| e.to_string())?;
         Ok(Renderer{canvas, screen_width, screen_height})
@@ -89,9 +88,35 @@ impl Renderer {
     }
     
     pub fn render_pause_menu(&mut self) -> Result<(), String> {
-        // Dimm background
-        self.canvas.set_draw_color(Color::RGBA(0, 0, 0, 7));
+        // Background
+        self.canvas.set_draw_color(Color::RGB(17, 17, 27));
         self.canvas.clear();
+        
+        ///////////
+        // Settings
+
+        // Boxes for the settings
+        self.canvas.set_draw_color(Color::RGB(180, 190, 254));
+        let box_width = (self.screen_width as f32/1920.0 * 500.0) as u32;
+        let box_height = (self.screen_height as f32/1080.0 * 100.0) as u32;
+
+        for x in 0..=5 {
+            let rect = Rect::new(
+                (self.screen_width as f32/2.0 - (box_width/2) as f32)as i32,
+                ((self.screen_height as f32/1080.0 * 100.0) as i32) * x,
+                box_width,
+                box_height);
+
+            match x {
+                0 => {
+                    let texture_creator = self.canvas.texture_creator();
+                    let settings_text = text_to_surface("Settings".to_owned());
+                    self.canvas.copy(&texture_creator.create_texture_from_surface(settings_text).unwrap(), None, Some(rect))?;
+                }
+                _ => self.canvas.draw_rect(rect)?,
+            }
+        }
+
         self.canvas.present();
         Ok(())
     }
@@ -100,12 +125,16 @@ impl Renderer {
         let tile_size = 3.0/48.0 * self.screen_width as f32;
 
         // Slot grid
-        self.canvas.set_draw_color(Color::WHITE);
-        self.canvas.draw_rect(Rect::new(
+        self.canvas.set_draw_color(Color::RGB(69, 71, 90));
+        let sgr = Rect::new(
             (self.screen_width as f32/1920.0 * 659.0) as i32,
             (self.screen_height as f32/1080.0 * 239.0) as i32,
             (self.screen_width as f32/1920.0 * 602.0) as u32,
-            (self.screen_height as f32/1080.0 * 482.0) as u32))?;
+            (self.screen_height as f32/1080.0 * 482.0) as u32);
+        self.canvas.fill_rect(sgr)?;
+
+        // Lines in between the symbols
+        self.canvas.set_draw_color(Color::RGB(205, 214, 244));
         for x in 0..5 {
             let start_x = x * tile_size as i32 + (self.screen_width as f32 * 0.40625) as i32;
             let end_y = (self.screen_width as f32 * 0.375) as i32;
@@ -119,16 +148,23 @@ impl Renderer {
 
         // Money
         let coins_text = text_to_surface(coins.to_string());
-        let x_pos = 5.0/6.0 * self.screen_height as f32;
-        let tile_fraction: u32 = 5/12  * tile_size as u32;
-        self.canvas.set_draw_color(Color::RGB(30, 30, 46));
-        self.canvas.fill_rect(Rect::new(x_pos as i32, 108/5 * self.screen_height, tile_fraction, tile_fraction))?;
-        self.canvas.copy(&texture_creator.create_texture_from_surface(coins_text).unwrap(), None, Some(Rect::new(x_pos as i32, tile_fraction as i32, tile_fraction, tile_fraction)))?;
+        let tile_fraction: u32 = (5.0/12.0 * tile_size as f32) as u32;
+        let rect = Rect::new(
+                    (self.screen_width as f32/ 2.0) as i32 - (tile_fraction as f32/2.0) as i32,
+                    tile_fraction as i32,
+                    tile_fraction,
+                    tile_fraction);
+        self.canvas.copy(&texture_creator.create_texture_from_surface(coins_text).unwrap(), None,
+            Some(rect))?;
 
         // Spin button
         let spin = text_to_surface(String::from("Spin"));
-        let offset = 5/96 * self.screen_width;
-        let spin_rect = Rect::new(self.screen_width/2 -offset, (25.0/36.0 * self.screen_height as f32) as i32, (offset*2) as u32, offset as u32);
+        let offset = (5.0/96.0 * self.screen_width as f32) as u32;
+        let spin_rect = Rect::new(
+            self.screen_width/2 - offset as i32,
+            (25.0/36.0 * self.screen_height as f32) as i32,
+            offset*2,
+            offset);
         self.canvas.set_draw_color(Color::RGB(69, 71, 90));
         self.canvas.fill_rect(spin_rect)?;
         self.canvas.copy(&texture_creator.create_texture_from_surface(spin).unwrap(), None, Some(spin_rect))?;
@@ -143,8 +179,8 @@ impl Renderer {
                 self.canvas.set_draw_color(Color::RGB(30, 30, 46));
                 self.canvas.clear();
 
-                self.draw_slots(items)?;
                 self.draw_ui(coins)?;
+                self.draw_slots(items)?;
             }
             State::Paused => {
                 self.render_pause_menu()?;
