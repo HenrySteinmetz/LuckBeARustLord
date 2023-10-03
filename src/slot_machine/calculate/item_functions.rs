@@ -24,7 +24,7 @@ pub fn higher_order_add_item<'a>(item: Item ) -> Box<dyn Fn(Vec<Item>) -> Vec<It
 }
 pub fn get_empty(items: Vec<Item>) -> LastEmpty {
     let mut latest_empty: usize = 999;
-    for i in 0..items.len() {
+    for i in 0..20 {
         if items[i] == Item::Empty {
             latest_empty = i;
         }
@@ -37,10 +37,15 @@ pub fn get_empty(items: Vec<Item>) -> LastEmpty {
         }
     }
 }
+pub fn get_adjecent_count(items: Vec<Item>, adjacents: Vec<usize>, search_item: Item) -> i64 {
+    let mut ret: i64 = 0;
+    for i in adjacents {if items[i] == search_item { ret += 1; }}
+    ret
+}
 
 pub fn get_all_empty(items: Vec<Item>) -> Vec<LastEmpty> {
     let mut result = vec![];
-    for i in 0..items.len() {
+    for i in 0..20 {
         if items[i] == Item::Empty {
             result.push(LastEmpty{ vector_pos: Some(i) });
         }

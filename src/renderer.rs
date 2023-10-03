@@ -7,13 +7,13 @@ use sdl2::rect::Point as SdlPoint;
 use sdl2::surface::Surface;
 use std::path::Path;
 use crate::Item;
+use crate::State;
 
-const TILE_SIZE_IN_PXS: i32 = 120;
-// Temporary 
-//const SCREEN_WIDTH_IN_PXS: i32 = 1920;
-//const SCREEN_HEIGHT_IN_PXS: i32 = 1080;
-
-pub struct Renderer {canvas: WindowCanvas}
+pub struct Renderer {
+    canvas: WindowCanvas,
+    screen_width: i32,
+    screen_height: i32,
+}
 #[derive(Debug)]
 pub struct Point (pub u16, pub u16);
 
@@ -44,6 +44,7 @@ pub fn index_to_point(index: u8) -> Point {
         _ => panic!("Index out of range!"),
     }
 }
+
 pub fn text_to_surface(text: String) -> Surface<'static> {
     let ttf_context = sdl2::ttf::init().map_err(|e| e.to_string()).unwrap();
     let path = std::path::Path::new("fonts/Minecraft.ttf");
@@ -54,57 +55,104 @@ pub fn text_to_surface(text: String) -> Surface<'static> {
 }
 
 impl Renderer {
-    pub fn new(window: Window ) -> Result<Renderer, String> {
+    
+    pub fn new(window: Window, screen_width: i32, screen_height: i32 ) -> Result<Renderer, String> {
         let canvas = window.into_canvas().accelerated().build().map_err(|e| e.to_string())?;
-        Ok(Renderer{canvas})
+        Ok(Renderer{canvas, screen_width, screen_height})
     }
 
-    pub fn draw_item(&mut self, item: Item, point: Point) -> Result<(), String>{
-        let x_offset = point.0 as i32 * TILE_SIZE_IN_PXS + 660;
-        let y_offset = point.1 as i32 * TILE_SIZE_IN_PXS + 240;
+    pub fn draw_item(&mut self, item: Item, point: Point) -> Result<(), String> {
+        // Random fractions I got by simplifying the scale for 1080p
+        let tile_size = 3.0/48.0 * self.screen_width as f32;
+        let x_temp = 33.0/96.0 * self.screen_width as f32;
+        let y_temp = 2.0/9.0 * self.screen_height as f32; 
+        let x_offset = point.0 as i32 * tile_size as i32 + x_temp as i32;
+        let y_offset = point.1 as i32 * tile_size as i32 + y_temp as i32;
+
         let file_name = item_to_file_name(item);
         let file_path = Path::new(&file_name);
+        
         let texture_creator = self.canvas.texture_creator();
         let texture = texture_creator.load_texture(file_path)?;
-        let draw_rect = Rect::new(x_offset, y_offset, 120, 120);
+        
+        let draw_rect = Rect::new(x_offset, y_offset, tile_size as u32, tile_size as u32);
+        
         self.canvas.copy(&texture, None, Some(draw_rect))?;
         Ok(())
     }
+    
     pub fn draw_slots(&mut self, items: Vec<Item>) -> Result<(), String> {
         for i in 0..items.len() {
             self.draw_item(items[i], index_to_point(i as u8))?;
         }
         Ok(())
     }
+    
+    pub fn render_pause_menu(&mut self) -> Result<(), String> {
+        // Dimm background
+        self.canvas.set_draw_color(Color::RGBA(0, 0, 0, 7));
+        self.canvas.clear();
+        self.canvas.present();
+        Ok(())
+    }
+
     pub fn draw_ui(&mut self, coins: i128) -> Result<(), String> {
+        let tile_size = 3.0/48.0 * self.screen_width as f32;
+
         // Slot grid
         self.canvas.set_draw_color(Color::WHITE);
-        self.canvas.draw_rect(Rect::new(659, 239, 602, 482))?;
+        self.canvas.draw_rect(Rect::new(
+            (self.screen_width as f32/1920.0 * 659.0) as i32,
+            (self.screen_height as f32/1080.0 * 239.0) as i32,
+            (self.screen_width as f32/1920.0 * 602.0) as u32,
+            (self.screen_height as f32/1080.0 * 482.0) as u32))?;
         for x in 0..5 {
-            self.canvas.draw_line(SdlPoint::new(x*120+780, 240), SdlPoint::new(x*120+780, 720))?;
-            self.canvas.draw_line(SdlPoint::new(x*120+780, 240), SdlPoint::new(x*120+780, 720))?;
+            let start_x = x * tile_size as i32 + (self.screen_width as f32 * 0.40625) as i32;
+            let end_y = (self.screen_width as f32 * 0.375) as i32;
+            let temp = 4 * tile_size as i32;
+            let start_y = end_y - temp;
+            self.canvas.draw_line(SdlPoint::new(start_x, start_y), SdlPoint::new(start_x, end_y))?;
         }
+
         // Texture creator for the entire function
         let texture_creator = self.canvas.texture_creator();
 
-        // Points
+        // Money
         let coins_text = text_to_surface(coins.to_string());
-        self.canvas.copy(&texture_creator.create_texture_from_surface(coins_text).unwrap(), None, Some(Rect::new(1600, 50, 50, 50)))?;
+        let x_pos = 5.0/6.0 * self.screen_height as f32;
+        let tile_fraction: u32 = 5/12  * tile_size as u32;
+        self.canvas.set_draw_color(Color::RGB(30, 30, 46));
+        self.canvas.fill_rect(Rect::new(x_pos as i32, 108/5 * self.screen_height, tile_fraction, tile_fraction))?;
+        self.canvas.copy(&texture_creator.create_texture_from_surface(coins_text).unwrap(), None, Some(Rect::new(x_pos as i32, tile_fraction as i32, tile_fraction, tile_fraction)))?;
 
         // Spin button
         let spin = text_to_surface(String::from("Spin"));
-        let spin_rect = Rect::new(1920/2-100, 750, 200, 100);
+        let offset = 5/96 * self.screen_width;
+        let spin_rect = Rect::new(self.screen_width/2 -offset, (25.0/36.0 * self.screen_height as f32) as i32, (offset*2) as u32, offset as u32);
         self.canvas.set_draw_color(Color::RGB(69, 71, 90));
         self.canvas.fill_rect(spin_rect)?;
         self.canvas.copy(&texture_creator.create_texture_from_surface(spin).unwrap(), None, Some(spin_rect))?;
 
         Ok(())
     }
-    pub fn render(&mut self, items: Vec<Item>, coins: i128) -> Result<(), String> {
-        self.canvas.set_draw_color(Color::RGB(30, 30, 46));
-        self.canvas.clear();
-        self.draw_slots(items)?;
-        self.draw_ui(coins)?;
+
+    pub fn render(&mut self, items: Vec<Item>, coins: i128, state: State) -> Result<(), String> {
+        match state {
+            State::Normal => {
+                // Background Color
+                self.canvas.set_draw_color(Color::RGB(30, 30, 46));
+                self.canvas.clear();
+
+                self.draw_slots(items)?;
+                self.draw_ui(coins)?;
+            }
+            State::Paused => {
+                self.render_pause_menu()?;
+            }
+            State::Selecting => {
+
+            }
+        }
         self.canvas.present();
         Ok(())
     }

@@ -8,7 +8,7 @@ use crate::Direction;
 
 pub fn convert_cards(items: Vec<Item>) -> Vec<Item> {
     let mut copy_items = items.clone();
-    for i in 0..items.len() {
+    for i in 0..20 {
         match copy_items[i] {
             Item::Clubs | Item::Spades | Item::Hearts | Item::Diamonds => {
                 copy_items[i] = Item::Wildcard
@@ -34,7 +34,7 @@ pub fn preprocessing(items: Vec<Item>) -> Option<(Vec<Item>, Vec<(u8, Item)>)> {
     // Mutable copy of the input vector
     let mut copy_items: Vec<Item> = items.clone();
 
-    for i in 0..items.len() {
+    for i in 0..20 {
         let adjecents: Vec<usize> = is_adjecent(i as u8);
         match copy_items[i] {
             Item::CardShark => {
@@ -64,7 +64,7 @@ pub fn events<'a>(items: Vec<Item>) ->  (Vec<Item>, Option<Vec<Box<dyn Fn(Vec<It
     let mut ret_items = items.clone();
     let mut ret_add_items_vec: Vec<Box<dyn Fn(Vec<Item>) -> Vec<Item> + 'a>> = vec![];
     for i in 0..20 {
-        match ret_items[i] {
+        match items[i] {
             Item::LightBulb(0) => {
                 ret_items[i] = Item::Empty;
             }
@@ -275,13 +275,14 @@ pub fn base_value_array(items: Vec<Item>) -> (Vec<Item>, Vec<i64>) {
             }
             Item::Dog => {
                 let mut val: i64 = 1;
-                for x in 0..adjecents.len() {
+                println!("{:?}", adjecents);
+                for x in adjecents {
                     if !val == 3 {
-                        match items[adjecents[x]] {
+                        match items[x] {
                             Item::RobinHood(_)|Item::Thief(_)|Item::Cultist|Item::Toddler|Item::BountyHunter|Item::Miner|Item::Dwarf|Item::KingMidas|
                             Item::Gambler(_)|Item::GeneralZaroff|Item::Witch|Item::Pirate|Item::Ninja|Item::MrsFruit|Item::Hooligan|Item::Farmer|
                             Item::Diver|Item::Dame|Item::Chef|Item::CardShark|Item::Beastmaster|Item::Geologist(_)|Item::Joker|Item::Comedian|
-                            Item::Bartender => val +=2,
+                            Item::Bartender => val += 2,
                             _ => (),
                         }
                     }
@@ -360,7 +361,7 @@ pub fn base_value_array(items: Vec<Item>) -> (Vec<Item>, Vec<i64>) {
 
 pub fn multipliers(items: Vec<Item>, value_vec: Vec<i64>) -> i128 {
     let mut mut_value_vec = value_vec.clone();
-    for i in 0..items.len() {
+    for i in 0..20 {
         let adjecents: Vec<usize> = is_adjecent(i as u8);
         match items[i] {
             Item::Bee => {
