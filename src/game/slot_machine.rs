@@ -173,35 +173,16 @@ pub enum State {
     Selecting,
     Paused,
     Normal,
+    GameOver,
 }
-
-pub struct SlotMachine {
-    state: State,
-}
-
-impl SlotMachine {
-    pub fn new() -> (SlotMachine, Vec<Item>) {
-        let mut items: Vec<Item> = vec![];
-        for _ in 0..20 {
-            items.push(Item::Empty);
-        }
-        (
-            SlotMachine {
-                state: State::Selecting,
-            },
-            items,
-        )
-    }
-    pub fn calculate(&mut self, items: Vec<Item>) -> (i128, Vec<Item>, SlotMachine) {
-        let (temp_items, cards): (Vec<Item>, Vec<(u8, Item)>) =
-            preprocessing(items.clone()).unwrap_or((items, vec![]));
-        let (val, its, funcs) = value_calc(temp_items);
-        
-        let ret_items = postprocessing(its, funcs);
-        return (
-            val,
-            re_add_cards(ret_items, cards),
-            SlotMachine {state: State::Normal,},
-        );
-    }
+pub fn calculate(items: Vec<Item>) -> (i128, Vec<Item>) {
+    let (temp_items, cards): (Vec<Item>, Vec<(u8, Item)>) =
+        preprocessing(items.clone()).unwrap_or((items, vec![]));
+    let (val, its, funcs) = value_calc(temp_items);
+    
+    let ret_items = postprocessing(its, funcs);
+    return (
+        val,
+        re_add_cards(ret_items, cards),
+    );
 }

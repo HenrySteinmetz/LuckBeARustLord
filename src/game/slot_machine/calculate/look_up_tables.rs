@@ -1,5 +1,5 @@
-use crate::Item;
-use crate::slot_machine::Direction;
+use crate::game::Item;
+use crate::game::slot_machine::Direction;
 
 pub fn arrow_lookup(arrow: Item, location: u8) -> Option<Vec<u8>> {
     let mut ret_vec: Vec<u8> = vec![];

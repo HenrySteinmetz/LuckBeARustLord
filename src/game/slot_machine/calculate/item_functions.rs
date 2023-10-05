@@ -1,4 +1,4 @@
-use crate::Item;
+use crate::game::Item;
 
 pub struct LastEmpty {
     pub vector_pos: Option<usize>,
