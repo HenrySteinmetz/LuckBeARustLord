@@ -9,7 +9,3 @@ edition = "2021"
 pix-engine = "0.7.0"
 rand = "0.8.5"
 
-[dependencies.sdl2]
-version = "0.35"
-default-features = false
-features = ["ttf","image","mixer"]

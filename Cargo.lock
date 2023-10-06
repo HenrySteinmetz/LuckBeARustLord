@@ -193,7 +193,6 @@ version = "0.1.0"
 dependencies = [
  "pix-engine",
  "rand",
- "sdl2",
 ]
 
 [[package]]
