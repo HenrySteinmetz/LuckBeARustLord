@@ -286,7 +286,7 @@ pub fn base_value_array(items: Vec<Item>) -> (Vec<Item>, Vec<i64>) {
                             | Item::Gambler(_)
                             | Item::GeneralZaroff
                             | Item::Witch
-                            | Item::Pirate
+                            | Item::Pirate(_)
                             | Item::Ninja
                             | Item::MrsFruit
                             | Item::Hooligan
@@ -308,16 +308,8 @@ pub fn base_value_array(items: Vec<Item>) -> (Vec<Item>, Vec<i64>) {
             }
             Item::Farmer => ret_vec.push(2),
             Item::FiveSidedDie => {
-                let mut val: i64 = 0;
-                let mut rng = rand::thread_rng();
-                match rng.gen_range(0..5) {
-                    0 => val += 1,
-                    1 => val += 2,
-                    2 => val += 3,
-                    3 => val += 4,
-                    4 => val += 5,
-                    _ => (),
-                }
+                let val: i64 = rand::thread_rng().gen_range(0..5);
+                ret_vec.push(val);
             }
             Item::Flower => ret_vec.push(1),
             Item::GoldenEgg => ret_vec.push(4),
@@ -357,18 +349,10 @@ pub fn base_value_array(items: Vec<Item>) -> (Vec<Item>, Vec<i64>) {
                 ret_vec.push(val);
             }
             Item::Sun => ret_vec.push(3),
-            Item::FiveSidedDie => {
-                let mut val: i64 = 0;
-                let mut rng = rand::thread_rng();
-                match rng.gen_range(0..3) {
-                    0 => val += 1,
-                    1 => val += 2,
-                    2 => val += 3,
-                    _ => (),
-                }
-            }
             Item::Wolf => ret_vec.push(2),
-            Item::BuffingCapsule => ret_vec.push(0), //warum?
+            Item::BuffingCapsule => ret_vec.push(0), //warum? weil die Buffing capsule selbst
+            //keinen wert hat sondern nur den Wert aller
+            //angrenzenden Symbole verdoppelt
             Item::Empty => ret_vec.push(0),
             _ => ret_vec.push(0),
         }
@@ -382,24 +366,16 @@ pub fn multipliers(items: Vec<Item>, value_vec: Vec<i64>) -> i128 {
         let adjecents: Vec<usize> = is_adjecent(i as u8);
         match items[i] {
             Item::Bee => {
-                for x in 0..adjecents.len() {
-                    match items[adjecents[x]] {
-                        Item::Flower | Item::Beehive | Item::Honey => {
-                            mut_value_vec[adjecents[x]] *= 2;
-                        }
-                        _ => (),
-                    }
-                }
+                let _ = adjecents.iter().map(|x| match items[*x] {
+                    Item::Flower | Item::Beehive | Item::Honey => mut_value_vec[*x] *= 2,
+                    _ => (),
+                });
             }
             Item::BuffingCapsule => {
-                for x in 0..adjecents.len() {
-                    mut_value_vec[adjecents[x]] *= 2;
-                }
+                let _ = adjecents.iter().map(|a| mut_value_vec[*a] *= 2);
             }
             Item::BronzeArrow(mut d) | Item::SilverArrow(mut d) | Item::GoldenArrow(mut d) => {
-                let mut rng = rand::thread_rng();
-                let rand = rng.gen_range(0..8);
-                match rand {
+                match rand::thread_rng().gen_range(0..8) {
                     0 => d = Direction::North,
                     1 => d = Direction::South,
                     2 => d = Direction::East,
@@ -413,41 +389,44 @@ pub fn multipliers(items: Vec<Item>, value_vec: Vec<i64>) -> i128 {
                 let arrow_vec = arrow_lookup(Item::BronzeArrow(d), i as u8);
                 match items[i] {
                     Item::GoldenArrow(_) => {
-                        for x in arrow_vec.unwrap() {
-                            mut_value_vec[x as usize] *= 4;
-                        }
+                        let _ = arrow_vec
+                            .unwrap()
+                            .into_iter()
+                            .map(|x| mut_value_vec[x as usize] *= 4);
                     }
                     Item::SilverArrow(_) => {
-                        for x in arrow_vec.unwrap() {
-                            mut_value_vec[x as usize] *= 3;
-                        }
+                        let _ = arrow_vec
+                            .unwrap()
+                            .into_iter()
+                            .map(|x| mut_value_vec[x as usize] *= 3);
                     }
                     Item::BronzeArrow(_) => {
-                        for x in arrow_vec.unwrap() {
-                            mut_value_vec[x as usize] *= 2;
-                        }
+                        let _ = arrow_vec
+                            .unwrap()
+                            .into_iter()
+                            .map(|x| mut_value_vec[x as usize] *= 2);
                     }
-                    _ => panic!("Rust comparisin is broken"),
+                    _ => unreachable!("Rust comparisin is broken"),
                 }
             }
             Item::Comedian => {
-                for x in 0..adjecents.len() {
-                    match items[adjecents[x]] {
+                let _ = adjecents.into_iter().map(|x| {
+                    match items[x] {
                         Item::Banana
                         | Item::BananaPeel
                         | Item::Dog
                         | Item::Monkey
                         | Item::Toddler
                         | Item::Joker => {
-                            mut_value_vec[adjecents[x]] *= 3;
+                            mut_value_vec[x] *= 3;
                         }
                         _ => (),
                     }
-                }
+                });
             }
             Item::Dame => {
-                for x in 0..adjecents.len() {
-                    match items[adjecents[x]] {
+                let _ = adjecents.into_iter().map(|x| {
+                    match items[x] {
                         Item::Amethyst(_)
                         | Item::Diamond
                         | Item::Emerald
@@ -455,60 +434,53 @@ pub fn multipliers(items: Vec<Item>, value_vec: Vec<i64>) -> i128 {
                         | Item::Ruby
                         | Item::Sapphire
                         | Item::ShinyPebble
-                        | Item::VoidStone => mut_value_vec[adjecents[x]] *= 2,
+                        | Item::VoidStone => mut_value_vec[x] *= 2,
                         _ => (),
                     }
-                }
-            }
-            Item::Flower => {
-                for x in 0..adjecents.len() {
-                    match items[adjecents[x]] {
-                        Item::Rain => mut_value_vec[adjecents[x]] *= 2,
-                        Item::Sun => mut_value_vec[adjecents[x]] *= 5,
-                        _ => (),
-                    }
-                }
+                });
+
+                
             }
             Item::Joker => {
-                for x in 0..adjecents.len() {
-                    match items[adjecents[x]] {
+                let _ = adjecents.into_iter().map(|x| {
+                    match items[x] {
                         Item::Clubs | Item::Diamonds | Item::Hearts | Item::Spades => {
-                            mut_value_vec[adjecents[x]] *= 2
+                            mut_value_vec[x] *= 2
                         }
                         _ => (),
                     }
-                }
+                });
+
             }
             Item::KingMidas => {
-                for x in 0..adjecents.len() {
-                    match items[adjecents[x]] {
+                let _ = adjecents.into_iter().map(|x| {
+                    match items[x] {
                         Item::Coin => {
-                            mut_value_vec[adjecents[x]] *= 3;
+                            mut_value_vec[x] *= 3;
                         }
                         _ => (),
                     }
-                }
+                });
             }
             Item::Monkey => {
-                for x in 0..adjecents.len() {
-                    match items[adjecents[x]] {
-                        // Add items need to be implemented
+                let _ = adjecents.into_iter().map(|x| {
+                    match items[x] {
                         Item::CoconutHalf | Item::Banana => {
-                            mut_value_vec[i] = value_vec[adjecents[x]] * 6
+                            mut_value_vec[i] = value_vec[x] * 6
                         }
                         _ => (),
                     }
-                }
-            }
+                });
 
+            }
             // Bitte immer als letztes lassen
             Item::Wildcard => {
                 let mut max: i64 = 0;
-                for y in 0..adjecents.len() {
-                    if value_vec[adjecents[y] as usize] > max {
-                        max = value_vec[adjecents[y] as usize];
+                let _ = adjecents.into_iter().map(|x| {
+                    if mut_value_vec[x] > max {
+                        max = mut_value_vec[x];
                     }
-                }
+                });
                 mut_value_vec[i] = max;
             }
             _ => (),
@@ -550,13 +522,12 @@ pub fn postprocessing<'a>(
 
 pub fn roll(items: Vec<Item>) -> (Vec<Item>, Option<Vec<Item>>) {
     let mut mut_copy = items.clone();
-    let mut removed = vec![];
     let mut ret_vec: Vec<Item> = vec![];
     if mut_copy.len() >= 20 {
-        let mut rng = rand::thread_rng();
+        let mut removed = vec![];
         for _ in 0..20 {
             let items_size: usize = mut_copy.len();
-            let rand_num: usize = rng.gen_range(0..items_size);
+            let rand_num: usize = rand::thread_rng().gen_range(0..items_size);
             let item = mut_copy[rand_num];
             removed.push(mut_copy.remove(rand_num));
             ret_vec.push(item);

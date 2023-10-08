@@ -4,12 +4,19 @@ use std::process::exit;
 mod slot_machine;
 use slot_machine::calculate::*;
 use slot_machine::Item;
+use slot_machine::Rarities;
 use slot_machine::State;
 
 pub struct GameState {
     items: Vec<Item>,
     draw_items: Vec<Item>,
+    options: Vec<Item>,
     money: i128,
+    reroll_capsules: u8,
+    removal_capsules: u8,
+    floor: u8,
+    rent_cycle: u16,
+    spins_till_rent: u8,
     odds_multiplier: i8,
     spin_clicked: bool,
     resolution: usize,
@@ -24,33 +31,9 @@ enum Pause {
     Quit,
 }
 
-#[derive(Debug, Eq, PartialEq)]
-pub enum Rarities {
-    Common,
-    Uncommon,
-    Rare,
-    VeryRare,
-}
-
-impl AsRef<str> for Rarities {
-    fn as_ref(&self) -> &str {
-        match self {
-            Self::Common => "Common",
-            Self::Uncommon => "Uncommon",
-            Self::Rare => "Rare",
-            Self::VeryRare => "Very rare",
-        }
-    }
-}
-
-impl AsRef<str> for Pause {
-    fn as_ref(&self) -> &str {
-        match self {
-            Self::Main => "Main",
-            Self::Settings => "Settings",
-            Self::Exit => "Exit",
-            Self::Quit => "Quit",
-        }
+impl std::fmt::Display for Rarities {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "{:?}", self)
     }
 }
 
@@ -61,24 +44,74 @@ impl std::fmt::Display for Item {
 }
 
 fn item_to_image(item: Item) -> Image {
-    let str = item.to_string() + ".png";
+    let str = item.to_text() + ".png";
     let path = "./textures/".to_string() + &str;
     Image::from_file(&path).unwrap()
 }
 
 impl GameState {
+    fn get_options(rent_cycle: u16) -> Vec<Item> {
+        // NOTE: this function doesn't take the luck multiplier into account
+        // and allows duplicate selection
+        let mut items = vec![];
+        for _ in 0..3 {
+            let rarity = match rent_cycle {
+                1 => Rarities::Common,
+                2 => match rand::thread_rng().gen_range(0..10) {
+                    9 => Rarities::Uncommon,
+                    _ => Rarities::Common,
+                },
+                3 => match rand::thread_rng().gen_range(0..100) {
+                    99 => Rarities::Rare,
+                    79..=98 => Rarities::Uncommon,
+                    _ => Rarities::Common,
+                },
+                4 => match rand::thread_rng().gen_range(0..100) {
+                    99 => Rarities::Rare,
+                    74..=98 => Rarities::Uncommon,
+                    _ => Rarities::Common,
+                },
+                5 => match rand::thread_rng().gen_range(0..200) {
+                    0 => Rarities::VeryRare,
+                    1..=3 => Rarities::Rare,
+                    4..=62 => Rarities::Uncommon,
+                    _ => Rarities::Common,
+                },
+                _ => match rand::thread_rng().gen_range(0..200) {
+                    0 => Rarities::VeryRare,
+                    1..=3 => Rarities::Rare,
+                    4..=63 => Rarities::Uncommon,
+                    _ => Rarities::Common,
+                },
+            };
+            let item = match rarity {
+                Rarities::Common => Item::get_common(),
+                Rarities::Uncommon => Item::get_uncommon(),
+                Rarities::Rare => Item::get_rare(),
+                Rarities::VeryRare => Item::get_very_rare(),
+                _ => panic!("Special or unknown item!"),
+            };
+            items.push(item);
+        }
+        items
+    }
     pub fn new() -> Self {
-        let mut images: Vec<Image> = vec![];
         let mut items: Vec<Item> = vec![];
         for _ in 0..20 {
             items.push(Item::Empty);
-            images.push(item_to_image(Item::Empty));
         }
+        let rent_cycle: u16 = 0;
         GameState {
             items: items.clone(),
             draw_items: items,
+            options: Self::get_options(rent_cycle),
+            floor: 0,
             money: 0,
+            reroll_capsules: 0,
+            removal_capsules: 0,
             odds_multiplier: 1,
+            rent_cycle,
+            spins_till_rent: 5,
             spin_clicked: false,
             state: State::Selecting,
             pause_state: Pause::Main,
@@ -97,6 +130,7 @@ impl GameState {
         let mut idk_items = re_add_cards(temp_its, cards);
         match removed {
             Some(_) => {
+                println!("{:?}", removed);
                 for x in removed.unwrap() {
                     idk_items.push(x);
                 }
@@ -113,16 +147,12 @@ impl GameState {
 
 impl PixEngine for GameState {
     fn on_start(&mut self, s: &mut PixState) -> PixResult<()> {
-        // Todo draw selection menu
-        s.background(Color::rgb(30, 30, 46));
-        Ok(())
-    }
-    fn on_update(&mut self, s: &mut PixState) -> PixResult<()> {
+        // Theme defintion
         let mut fonts = theme::Fonts::default();
         fonts.body = Font::INCONSOLATA;
         fonts.heading = Font::from_file("pixelated", "./fonts/pixelated.ttf");
         fonts.monospace = Font::INCONSOLATA;
-
+        
         let mut colors = theme::Colors::dark();
         colors.on_background = color!(17, 17, 27);
         colors.primary = color!(30, 30, 46);
@@ -136,16 +166,20 @@ impl PixEngine for GameState {
         colors.on_primary = color!(205, 214, 244);
         colors.on_secondary = color!(116, 199, 236);
         colors.on_error = color!(253, 139, 168);
-
+        // Theme assignment
         let mut catppuccin = Theme::builder().build();
         catppuccin.colors = colors;
         catppuccin.fonts = fonts;
         catppuccin.font_size = 30;
         catppuccin.styles = theme::FontStyles::default();
         catppuccin.spacing = theme::Spacing::builder().build();
+        s.set_theme(catppuccin);
+        Ok(())
+    }
+    fn on_update(&mut self, s: &mut PixState) -> PixResult<()> {
+        s.show_frame_rate(true);
         let tile_size = (3.0 / 48.0 * s.width().unwrap() as f32) as u32;
         s.clear()?;
-        s.set_theme(catppuccin);
         match self.state {
             // Doesn't scale with 1440p
             State::Normal => {
@@ -170,12 +204,7 @@ impl PixEngine for GameState {
                     s.image(&image, location)?;
                     s.set_texture_target(texture_id)?;
                     if s.hovered() {
-                        // Todo add tooltips for all symbols
-                        let mut tooltip = "";
-                        match self.items[x] {
-                            Item::Empty => tooltip = "Does nothing",
-                            _ => (),
-                        }
+                        let tooltip = self.draw_items[x].get_description();
                         s.tooltip(tooltip)?;
                     }
                     s.clear_texture_target();
@@ -223,186 +252,37 @@ impl PixEngine for GameState {
                 Pause::Quit => exit(0),
             },
             State::Selecting => {
-                let commons = vec![
-                    Item::Anchor,
-                    Item::Banana,
-                    Item::BananaPeel,
-                    Item::Bee,
-                    Item::Beer,
-                    Item::BountyHunter,
-                    Item::Bubble(3),
-                    Item::Candy,
-                    Item::Cat,
-                    Item::Cheese,
-                    Item::Cherry,
-                    Item::Coal(20),
-                    Item::Coin,
-                    Item::Crab,
-                    Item::Crow(0),
-                    Item::Cultist,
-                    Item::Dog,
-                    Item::Dwarf,
-                    Item::Egg,
-                    Item::Flower,
-                    Item::Gambler(0),
-                    Item::Goldfish,
-                    Item::Goose,
-                    Item::Key,
-                    Item::LightBulb(5),
-                    Item::Lockbox,
-                    Item::Magpie(0),
-                    Item::Milk,
-                    Item::Miner,
-                    Item::Monkey,
-                    Item::Mouse,
-                    Item::Ore,
-                    Item::Owl(0),
-                    Item::Oyster,
-                    Item::Pearl,
-                    Item::Present(12),
-                    Item::Seed,
-                    Item::ShinyPebble,
-                    Item::Snail(0),
-                    Item::ThreeSidedDie,
-                    Item::Toddler,
-                    Item::Turtle(0),
-                    Item::Urn,
-                ];
-                let uncommons = vec![
-                    Item::BarOfSoap(3),
-                    Item::Bear,
-                    Item::BigOre,
-                    Item::BigUrn,
-                    Item::Billionaire,
-                    Item::BronzeArrow(slot_machine::Direction::North),
-                    Item::BuffingCapsule,
-                    Item::ChemicalSeven,
-                    Item::Chick,
-                    Item::Clubs,
-                    Item::Coconut,
-                    Item::CoconutHalf,
-                    Item::Diamonds,
-                    Item::EssenceCapsule,
-                    Item::FiveSidedDie,
-                    Item::Golem(5),
-                    Item::Hearts,
-                    Item::HexOfDestruction,
-                    Item::HexOfDraining,
-                    Item::HexOfEmptiness,
-                    Item::HexOfHoarding,
-                    Item::HexOfMidas,
-                    Item::HexOfTedium,
-                    Item::HexOfThievery,
-                    Item::Hooligan,
-                    Item::HustlingCapsule,
-                    Item::ItemCapsule,
-                    Item::Jellyfish,
-                    Item::LuckyCapsule,
-                    Item::MatryoshkaDoll,
-                    Item::Ninja,
-                    Item::Orange,
-                    Item::Peach,
-                    Item::Pinata,
-                    Item::Pufferfish,
-                    Item::Rabbit(0),
-                    Item::RabbitFluff,
-                    Item::Rain,
-                    Item::RemovalCapsule,
-                    Item::RerollCapsule,
-                    Item::Safe,
-                    Item::SandDollar,
-                    Item::Sapphire,
-                    Item::Sloth(0),
-                    Item::Spades,
-                    Item::Target,
-                    Item::TediumCapsule,
-                    Item::Thief(0),
-                    Item::TimeCapsule,
-                    Item::VoidCreature,
-                    Item::VoidFruit,
-                    Item::VoidStone,
-                    Item::WealthyCapsule,
-                    Item::Wine,
-                    Item::Wolf,
-                ];
-                let rares = vec![
-                    Item::Amethyst(1),
-                    Item::Apple,
-                    Item::Bartender,
-                    Item::Beastmaster,
-                    Item::Beehive,
-                    Item::CardShark,
-                    Item::Chef,
-                    Item::Chicken,
-                    Item::Comedian,
-                    Item::Cow,
-                    Item::Dame,
-                    Item::Diver,
-                    Item::Dove,
-                    Item::Emerald,
-                    Item::Farmer,
-                    Item::FrozenFossil(20),
-                    Item::GeneralZaroff,
-                    Item::Geologist(2),
-                    Item::GoldenEgg,
-                    Item::Honey,
-                    Item::Joker,
-                    Item::KingMidas,
-                    Item::MagicKey,
-                    Item::Martini,
-                    Item::Mine(4),
-                    Item::Moon,
-                    Item::MrsFruit,
-                    Item::Omelette,
-                    Item::Pear(0),
-                    Item::RobinHood(0),
-                    Item::Ruby,
-                    Item::SilverArrow(slot_machine::Direction::North),
-                    Item::Spirit(4),
-                    Item::Strawberry,
-                    Item::Sun,
-                    Item::Tomb,
-                    Item::TreasureChest,
-                    Item::Witch,
-                ];
-                let very_rares = vec![
-                    Item::Diamond,
-                    Item::EldritchCreature,
-                    Item::GoldenArrow(slot_machine::Direction::North),
-                    Item::Highlander,
-                    Item::MegaChest,
-                    Item::MidasBomb,
-                    Item::Pirate(2),
-                    Item::Watermelon,
-                    Item::Wildcard,
-                ];
-                let mut items: Vec<Item> = vec![];
-                // Every rarity decreases the chances of beeing choosen by 2 multiplicatively
-                // NOTE: the above is the default state and doens't take modifiers into account
-                for x in 0..3 {
-                    let rarity = match rand::thread_rng().gen_range(0..20) {
-                        0|1|2|3|4|5|6|7|8|9 => Rarities::Common,
-                        10|11|12|13|14 => Rarities::Uncommon,
-                        15|16|17 => Rarities::Rare,
-                        18|19 => Rarities::VeryRare,
-                        _ => unreachable!("rng out of range"),
-                    };
-                    let item = match rarity {
-                        Rarities::Common => commons[rand::thread_rng().gen_range(0..commons.len()) as usize],
-                        Rarities::Uncommon => uncommons[rand::thread_rng().gen_range(0..uncommons.len()) as usize],
-                        Rarities::Rare => rares[rand::thread_rng().gen_range(0..rares.len()) as usize],
-                        Rarities::VeryRare => very_rares[rand::thread_rng().gen_range(0..very_rares.len()) as usize],
-                    };
-                    items.push(item);
+                let (w, h) = s.dimensions()?;
+                for x in 1..4 {
+                    let item = self.options[x - 1];
+                    // Metadata
                     let description = item.get_description();
-                    let rarity = item.rarity();
+                    let rarity = item.rarity().to_string();
+                    let item_name = item.to_text();
                     let value = item.get_value();
-                    let (w, h) = s.dimensions()?;
-                    let height = h - (h as f32/1080.0 * 100.0) as u32;
+                    // Size caclulation for the three boxes
+                    let height = h - (h as f32 / 1080.0 * 100.0) as u32;
                     let width = (w as f32 / 3.0) as u32 - (w as f32 / 1920.0 * 100.0) as u32;
+                    //let x = (width + 50) * x + (x - (1 * 100));
+                    //let y = h - 50;
+
+                    let mut temp = format!("\nRarity: {rarity}\nValue: {value}\nDescription:\n{description}\n");
+                    let texture_id = s.create_texture(width, height, None)?;
+                    s.theme_mut().spacing.frame_pad.set_x(50);
+                    s.theme_mut().spacing.frame_pad.set_y(50);
+                    s.heading(item_name)?;
+                    s.text(&mut temp)?;
+                    s.set_texture_target(texture_id)?;
+                    if s.hovered() {
+                        s.cursor(Cursor::hand())?;
+                    }
+                    if s.clicked() {
+                        self.items.push(item);
+                        self.state = State::Normal;
+                    }
+                    s.clear_texture_target();
                 }
-
-
+                s.text(format!("FPS: {}", s.avg_frame_rate()))?;
             }
             State::GameOver => {
                 if s.button("Play again?")? {
@@ -421,6 +301,10 @@ impl PixEngine for GameState {
             }
             Key::Space if self.state == State::Normal => {
                 self.money += self.calculate();
+                //println!("Items: {:?}", self.items);
+                //println!("Display items: {:?}", self.draw_items);
+                //println!("Items length: {:?}", self.items.len());
+                //println!("Display items: {:?}", self.draw_items.len());
             }
             Key::Return if self.state == State::Normal => self.state = State::GameOver,
             _ => (),

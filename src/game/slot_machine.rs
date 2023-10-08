@@ -1,4 +1,5 @@
 pub mod calculate;
+use rand::Rng;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Direction {
@@ -186,154 +187,154 @@ pub enum Rarities {
 impl Item {
     pub fn rarity(self) -> Rarities {
         match self {
-            Item::Anchor |
-            Item::Banana |
-            Item::BananaPeel |
-            Item::Bee |
-            Item::Beer |
-            Item::BountyHunter|
-            Item::Bubble(_)|
-            Item::Candy|
-            Item::Cat|
-            Item::Cheese|
-            Item::Cherry|
-            Item::Coal(_)|
-            Item::Coin|
-            Item::Crab|
-            Item::Crow(_)|
-            Item::Cultist|
-            Item::Dog|
-            Item::Dwarf|
-            Item::Egg|
-            Item::Flower|
-            Item::Gambler(_)|
-            Item::Goldfish|
-            Item::Goose|
-            Item::Key|
-            Item::LightBulb(_)|
-            Item::Lockbox|
-            Item::Magpie(_)|
-            Item::Milk|
-            Item::Miner|
-            Item::Monkey|
-            Item::Mouse|
-            Item::Ore|
-            Item::Owl(_)|
-            Item::Oyster|
-            Item::Pearl|
-            Item::Present(_)|
-            Item::Seed|
-            Item::ShinyPebble|
-            Item::Snail(_)|
-            Item::ThreeSidedDie|
-            Item::Toddler|
-            Item::Turtle(_)|
-            Item::Urn => Rarities::Common,
-            
-            Item::BarOfSoap(_)|
-            Item::Bear|
-            Item::BigOre|
-            Item::BigUrn|
-            Item::Billionaire|
-            Item::BronzeArrow(_)|
-            Item::BuffingCapsule|
-            Item::ChemicalSeven|
-            Item::Chick|
-            Item::Clubs|
-            Item::Coconut|
-            Item::CoconutHalf|
-            Item::Diamonds|
-            Item::EssenceCapsule|
-            Item::FiveSidedDie|
-            Item::Golem(_)|
-            Item::Hearts|
-            Item::HexOfDestruction|
-            Item::HexOfDraining|
-            Item::HexOfEmptiness|
-            Item::HexOfHoarding|
-            Item::HexOfMidas|
-            Item::HexOfTedium|
-            Item::HexOfThievery|
-            Item::Hooligan|
-            Item::HustlingCapsule|
-            Item::ItemCapsule|
-            Item::Jellyfish|
-            Item::LuckyCapsule|
-            Item::MatryoshkaDoll|
-            Item::Ninja|
-            Item::Orange|
-            Item::Peach|
-            Item::Pinata|
-            Item::Pufferfish|
-            Item::Rabbit(_)|
-            Item::RabbitFluff|
-            Item::Rain|
-            Item::RemovalCapsule|
-            Item::RerollCapsule|
-            Item::Safe|
-            Item::SandDollar|
-            Item::Sapphire|
-            Item::Sloth(_)|
-            Item::Spades|
-            Item::Target|
-            Item::TediumCapsule|
-            Item::Thief(_)|
-            Item::TimeCapsule|
-            Item::VoidCreature|
-            Item::VoidFruit|
-            Item::VoidStone|
-            Item::WealthyCapsule|
-            Item::Wine|
-            Item::Wolf => Rarities::Uncommon,
+            Item::Anchor
+            | Item::Banana
+            | Item::BananaPeel
+            | Item::Bee
+            | Item::Beer
+            | Item::BountyHunter
+            | Item::Bubble(_)
+            | Item::Candy
+            | Item::Cat
+            | Item::Cheese
+            | Item::Cherry
+            | Item::Coal(_)
+            | Item::Coin
+            | Item::Crab
+            | Item::Crow(_)
+            | Item::Cultist
+            | Item::Dog
+            | Item::Dwarf
+            | Item::Egg
+            | Item::Flower
+            | Item::Gambler(_)
+            | Item::Goldfish
+            | Item::Goose
+            | Item::Key
+            | Item::LightBulb(_)
+            | Item::Lockbox
+            | Item::Magpie(_)
+            | Item::Milk
+            | Item::Miner
+            | Item::Monkey
+            | Item::Mouse
+            | Item::Ore
+            | Item::Owl(_)
+            | Item::Oyster
+            | Item::Pearl
+            | Item::Present(_)
+            | Item::Seed
+            | Item::ShinyPebble
+            | Item::Snail(_)
+            | Item::ThreeSidedDie
+            | Item::Toddler
+            | Item::Turtle(_)
+            | Item::Urn => Rarities::Common,
 
-            Item::Amethyst(_)|
-            Item::Apple|
-            Item::Bartender|
-            Item::Beastmaster|
-            Item::Beehive|
-            Item::CardShark|
-            Item::Chef|
-            Item::Chicken|
-            Item::Comedian|
-            Item::Cow|
-            Item::Dame|
-            Item::Diver|
-            Item::Dove|
-            Item::Emerald|
-            Item::Farmer|
-            Item::FrozenFossil(_)|
-            Item::GeneralZaroff|
-            Item::Geologist(_)|
-            Item::GoldenEgg|
-            Item::Honey|
-            Item::Joker|
-            Item::KingMidas|
-            Item::MagicKey|
-            Item::Martini|
-            Item::Mine(_)|
-            Item::Moon|
-            Item::MrsFruit|
-            Item::Omelette|
-            Item::Pear(_)|
-            Item::RobinHood(_)|
-            Item::Ruby|
-            Item::SilverArrow(_)|
-            Item::Spirit(_)|
-            Item::Strawberry|
-            Item::Sun|
-            Item::Tomb|
-            Item::TreasureChest|
-            Item::Witch => Rarities::Rare,
+            Item::BarOfSoap(_)
+            | Item::Bear
+            | Item::BigOre
+            | Item::BigUrn
+            | Item::Billionaire
+            | Item::BronzeArrow(_)
+            | Item::BuffingCapsule
+            | Item::ChemicalSeven
+            | Item::Chick
+            | Item::Clubs
+            | Item::Coconut
+            | Item::CoconutHalf
+            | Item::Diamonds
+            | Item::EssenceCapsule
+            | Item::FiveSidedDie
+            | Item::Golem(_)
+            | Item::Hearts
+            | Item::HexOfDestruction
+            | Item::HexOfDraining
+            | Item::HexOfEmptiness
+            | Item::HexOfHoarding
+            | Item::HexOfMidas
+            | Item::HexOfTedium
+            | Item::HexOfThievery
+            | Item::Hooligan
+            | Item::HustlingCapsule
+            | Item::ItemCapsule
+            | Item::Jellyfish
+            | Item::LuckyCapsule
+            | Item::MatryoshkaDoll
+            | Item::Ninja
+            | Item::Orange
+            | Item::Peach
+            | Item::Pinata
+            | Item::Pufferfish
+            | Item::Rabbit(_)
+            | Item::RabbitFluff
+            | Item::Rain
+            | Item::RemovalCapsule
+            | Item::RerollCapsule
+            | Item::Safe
+            | Item::SandDollar
+            | Item::Sapphire
+            | Item::Sloth(_)
+            | Item::Spades
+            | Item::Target
+            | Item::TediumCapsule
+            | Item::Thief(_)
+            | Item::TimeCapsule
+            | Item::VoidCreature
+            | Item::VoidFruit
+            | Item::VoidStone
+            | Item::WealthyCapsule
+            | Item::Wine
+            | Item::Wolf => Rarities::Uncommon,
 
-            Item::Diamond|
-            Item::EldritchCreature|
-            Item::GoldenArrow(_)|
-            Item::Highlander|
-            Item::MegaChest|
-            Item::MidasBomb|
-            Item::Pirate(_)|
-            Item::Watermelon|
-            Item::Wildcard => Rarities::VeryRare,
+            Item::Amethyst(_)
+            | Item::Apple
+            | Item::Bartender
+            | Item::Beastmaster
+            | Item::Beehive
+            | Item::CardShark
+            | Item::Chef
+            | Item::Chicken
+            | Item::Comedian
+            | Item::Cow
+            | Item::Dame
+            | Item::Diver
+            | Item::Dove
+            | Item::Emerald
+            | Item::Farmer
+            | Item::FrozenFossil(_)
+            | Item::GeneralZaroff
+            | Item::Geologist(_)
+            | Item::GoldenEgg
+            | Item::Honey
+            | Item::Joker
+            | Item::KingMidas
+            | Item::MagicKey
+            | Item::Martini
+            | Item::Mine(_)
+            | Item::Moon
+            | Item::MrsFruit
+            | Item::Omelette
+            | Item::Pear(_)
+            | Item::RobinHood(_)
+            | Item::Ruby
+            | Item::SilverArrow(_)
+            | Item::Spirit(_)
+            | Item::Strawberry
+            | Item::Sun
+            | Item::Tomb
+            | Item::TreasureChest
+            | Item::Witch => Rarities::Rare,
+
+            Item::Diamond
+            | Item::EldritchCreature
+            | Item::GoldenArrow(_)
+            | Item::Highlander
+            | Item::MegaChest
+            | Item::MidasBomb
+            | Item::Pirate(_)
+            | Item::Watermelon
+            | Item::Wildcard => Rarities::VeryRare,
             _ => Rarities::Special,
         }
     }
@@ -625,7 +626,7 @@ impl Item {
             Self::Sloth(_) => "0",
             Self::Snail(_) => "0",
             Self::Spades => "1",
-            Self::Spades => "6",
+            Self::Spirit(_) => "6",
             Self::Strawberry => "3",
             Self::Sun => "3",
             Self::Target => "2",
@@ -647,8 +648,178 @@ impl Item {
             Self::Wine => "2",
             Self::Witch => "2",
             Self::Wolf => "2",
-            _ => unreachable!("Unrecognised symbol!")
+            _ => unreachable!("Unrecognised symbol!"),
         };
         val.to_owned()
+    }
+    pub fn get_common() -> Item {
+        let commons = vec![
+            Item::Anchor,
+            Item::Banana,
+            Item::BananaPeel,
+            Item::Bee,
+            Item::Beer,
+            Item::BountyHunter,
+            Item::Bubble(3),
+            Item::Candy,
+            Item::Cat,
+            Item::Cheese,
+            Item::Cherry,
+            Item::Coal(20),
+            Item::Coin,
+            Item::Crab,
+            Item::Crow(0),
+            Item::Cultist,
+            Item::Dog,
+            Item::Dwarf,
+            Item::Egg,
+            Item::Flower,
+            Item::Gambler(0),
+            Item::Goldfish,
+            Item::Goose,
+            Item::Key,
+            Item::LightBulb(5),
+            Item::Lockbox,
+            Item::Magpie(0),
+            Item::Milk,
+            Item::Miner,
+            Item::Monkey,
+            Item::Mouse,
+            Item::Ore,
+            Item::Owl(0),
+            Item::Oyster,
+            Item::Pearl,
+            Item::Present(12),
+            Item::Seed,
+            Item::ShinyPebble,
+            Item::Snail(0),
+            Item::ThreeSidedDie,
+            Item::Toddler,
+            Item::Turtle(0),
+            Item::Urn,
+        ];
+        commons[rand::thread_rng().gen_range(0..commons.len()) as usize]
+    }
+    pub fn get_uncommon() -> Item {
+        let uncommons = vec![
+            Item::BarOfSoap(3),
+            Item::Bear,
+            Item::BigOre,
+            Item::BigUrn,
+            Item::Billionaire,
+            Item::BronzeArrow(Direction::North),
+            Item::BuffingCapsule,
+            Item::ChemicalSeven,
+            Item::Chick,
+            Item::Clubs,
+            Item::Coconut,
+            Item::CoconutHalf,
+            Item::Diamonds,
+            Item::EssenceCapsule,
+            Item::FiveSidedDie,
+            Item::Golem(5),
+            Item::Hearts,
+            Item::HexOfDestruction,
+            Item::HexOfDraining,
+            Item::HexOfEmptiness,
+            Item::HexOfHoarding,
+            Item::HexOfMidas,
+            Item::HexOfTedium,
+            Item::HexOfThievery,
+            Item::Hooligan,
+            Item::HustlingCapsule,
+            Item::ItemCapsule,
+            Item::Jellyfish,
+            Item::LuckyCapsule,
+            Item::MatryoshkaDoll,
+            Item::Ninja,
+            Item::Orange,
+            Item::Peach,
+            Item::Pinata,
+            Item::Pufferfish,
+            Item::Rabbit(0),
+            Item::RabbitFluff,
+            Item::Rain,
+            Item::RemovalCapsule,
+            Item::RerollCapsule,
+            Item::Safe,
+            Item::SandDollar,
+            Item::Sapphire,
+            Item::Sloth(0),
+            Item::Spades,
+            Item::Target,
+            Item::TediumCapsule,
+            Item::Thief(0),
+            Item::TimeCapsule,
+            Item::VoidCreature,
+            Item::VoidFruit,
+            Item::VoidStone,
+            Item::WealthyCapsule,
+            Item::Wine,
+            Item::Wolf,
+        ];
+        uncommons[rand::thread_rng().gen_range(0..uncommons.len()) as usize]
+    }
+    pub fn get_rare() -> Item {
+        let rares = vec![
+            Item::Amethyst(1),
+            Item::Apple,
+            Item::Bartender,
+            Item::Beastmaster,
+            Item::Beehive,
+            Item::CardShark,
+            Item::Chef,
+            Item::Chicken,
+            Item::Comedian,
+            Item::Cow,
+            Item::Dame,
+            Item::Diver,
+            Item::Dove,
+            Item::Emerald,
+            Item::Farmer,
+            Item::FrozenFossil(20),
+            Item::GeneralZaroff,
+            Item::Geologist(2),
+            Item::GoldenEgg,
+            Item::Honey,
+            Item::Joker,
+            Item::KingMidas,
+            Item::MagicKey,
+            Item::Martini,
+            Item::Mine(4),
+            Item::Moon,
+            Item::MrsFruit,
+            Item::Omelette,
+            Item::Pear(0),
+            Item::RobinHood(0),
+            Item::Ruby,
+            Item::SilverArrow(Direction::North),
+            Item::Spirit(4),
+            Item::Strawberry,
+            Item::Sun,
+            Item::Tomb,
+            Item::TreasureChest,
+            Item::Witch,
+        ];
+        rares[rand::thread_rng().gen_range(0..rares.len()) as usize]
+    }
+    pub fn get_very_rare() -> Item {
+        let very_rares = vec![
+            Item::Diamond,
+            Item::EldritchCreature,
+            Item::GoldenArrow(Direction::North),
+            Item::Highlander,
+            Item::MegaChest,
+            Item::MidasBomb,
+            Item::Pirate(2),
+            Item::Watermelon,
+            Item::Wildcard,
+        ];
+        very_rares[rand::thread_rng().gen_range(0..very_rares.len()) as usize]
+    }
+    // Note:: the following function makes any future items that contain the word North non
+    // displayable and would need a check
+    pub fn to_text(self) -> String {
+        self.to_string().replace("North", "").replace(&['(', ')', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'][..], "")
     }
 }
