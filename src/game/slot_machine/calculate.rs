@@ -1,17 +1,17 @@
 pub mod item_functions;
 mod look_up_tables;
 use crate::game::slot_machine::Direction;
-use crate::game::Item;
+use crate::game::Symbol;
 pub use item_functions::*;
 use look_up_tables::*;
 use rand::Rng;
 
-pub fn convert_cards(items: Vec<Item>) -> Vec<Item> {
+pub fn convert_cards(items: Vec<Symbol>) -> Vec<Symbol> {
     let mut copy_items = items.clone();
     for i in 0..20 {
         match copy_items[i] {
-            Item::Clubs | Item::Spades | Item::Hearts | Item::Diamonds => {
-                copy_items[i] = Item::Wildcard
+            Symbol::Clubs | Symbol::Spades | Symbol::Hearts | Symbol::Diamonds => {
+                copy_items[i] = Symbol::Wildcard
             }
             _ => (),
         }
@@ -19,7 +19,7 @@ pub fn convert_cards(items: Vec<Item>) -> Vec<Item> {
     copy_items
 }
 
-pub fn re_add_cards(items: Vec<Item>, cards: Vec<(u8, Item)>) -> Vec<Item> {
+pub fn re_add_cards(items: Vec<Symbol>, cards: Vec<(u8, Symbol)>) -> Vec<Symbol> {
     let mut copy_items = items.clone();
     for i in cards {
         copy_items[i.0 as usize] = i.1;
@@ -27,22 +27,22 @@ pub fn re_add_cards(items: Vec<Item>, cards: Vec<(u8, Item)>) -> Vec<Item> {
     copy_items
 }
 
-pub fn preprocessing(items: Vec<Item>) -> Option<(Vec<Item>, Vec<(u8, Item)>)> {
+pub fn preprocessing(items: Vec<Symbol>) -> Option<(Vec<Symbol>, Vec<(u8, Symbol)>)> {
     // Indecies of all cards that are adjecent to a card shark with their type
-    let mut indecies_cards: Vec<(u8, Item)> = vec![];
+    let mut indecies_cards: Vec<(u8, Symbol)> = vec![];
     // Mutable copy of the input vector
-    let mut copy_items: Vec<Item> = items.clone();
+    let mut copy_items: Vec<Symbol> = items.clone();
 
     for i in 0..20 {
         let adjecents: Vec<usize> = is_adjecent(i as u8);
         match copy_items[i] {
-            Item::CardShark => {
+            Symbol::CardShark => {
                 for x in 0..adjecents.len() {
                     match copy_items[adjecents[x] as usize] {
-                        Item::Clubs => indecies_cards.push((adjecents[x] as u8, Item::Clubs)),
-                        Item::Spades => indecies_cards.push((adjecents[x] as u8, Item::Spades)),
-                        Item::Hearts => indecies_cards.push((adjecents[x] as u8, Item::Hearts)),
-                        Item::Diamonds => indecies_cards.push((adjecents[x] as u8, Item::Diamonds)),
+                        Symbol::Clubs => indecies_cards.push((adjecents[x] as u8, Symbol::Clubs)),
+                        Symbol::Spades => indecies_cards.push((adjecents[x] as u8, Symbol::Spades)),
+                        Symbol::Hearts => indecies_cards.push((adjecents[x] as u8, Symbol::Hearts)),
+                        Symbol::Diamonds => indecies_cards.push((adjecents[x] as u8, Symbol::Diamonds)),
                         _ => (),
                     }
                 }
@@ -60,92 +60,92 @@ pub fn preprocessing(items: Vec<Item>) -> Option<(Vec<Item>, Vec<(u8, Item)>)> {
 }
 // This is the function to add all random symbols and manage, symbol lifetimes
 pub fn events<'a>(
-    items: Vec<Item>,
+    items: Vec<Symbol>,
 ) -> (
-    Vec<Item>,
-    Option<Vec<Box<dyn Fn(Vec<Item>) -> Vec<Item> + 'a>>>,
+    Vec<Symbol>,
+    Option<Vec<Box<dyn Fn(Vec<Symbol>) -> Vec<Symbol> + 'a>>>,
 ) {
     let mut ret_items = items.clone();
-    let mut ret_add_items_vec: Vec<Box<dyn Fn(Vec<Item>) -> Vec<Item> + 'a>> = vec![];
+    let mut ret_add_items_vec: Vec<Box<dyn Fn(Vec<Symbol>) -> Vec<Symbol> + 'a>> = vec![];
     for i in 0..20 {
         match items[i] {
-            Item::LightBulb(0) => {
-                ret_items[i] = Item::Empty;
+            Symbol::LightBulb(0) => {
+                ret_items[i] = Symbol::Empty;
             }
-            Item::Bartender => {
+            Symbol::Bartender => {
                 let mut rng = rand::thread_rng();
                 if rng.gen_range(0..10) == 9 {
                     match rng.gen_range(0..4) {
                         0 => match get_empty(items.clone()).vector_pos {
-                            Some(x) => ret_items[x] = Item::ChemicalSeven,
+                            Some(x) => ret_items[x] = Symbol::ChemicalSeven,
                             None => {
-                                ret_add_items_vec.push(higher_order_add_item(Item::ChemicalSeven))
+                                ret_add_items_vec.push(higher_order_add_item(Symbol::ChemicalSeven))
                             }
                         },
                         1 => match get_empty(items.clone()).vector_pos {
-                            Some(x) => ret_items[x] = Item::Beer,
+                            Some(x) => ret_items[x] = Symbol::Beer,
                             None => {
-                                ret_add_items_vec.push(higher_order_add_item(Item::ChemicalSeven))
+                                ret_add_items_vec.push(higher_order_add_item(Symbol::ChemicalSeven))
                             }
                         },
                         2 => match get_empty(items.clone()).vector_pos {
-                            Some(x) => ret_items[x] = Item::Wine,
+                            Some(x) => ret_items[x] = Symbol::Wine,
                             None => {
-                                ret_add_items_vec.push(higher_order_add_item(Item::ChemicalSeven))
+                                ret_add_items_vec.push(higher_order_add_item(Symbol::ChemicalSeven))
                             }
                         },
                         3 => match get_empty(items.clone()).vector_pos {
-                            Some(x) => ret_items[x] = Item::Martini,
+                            Some(x) => ret_items[x] = Symbol::Martini,
                             None => {
-                                ret_add_items_vec.push(higher_order_add_item(Item::ChemicalSeven))
+                                ret_add_items_vec.push(higher_order_add_item(Symbol::ChemicalSeven))
                             }
                         },
                         _ => (),
                     }
                 }
             }
-            Item::Beehive => {
+            Symbol::Beehive => {
                 let mut rng = rand::thread_rng();
                 if rng.gen_range(0..10) == 9 {
                     match get_empty(items.clone()).vector_pos {
-                        Some(x) => ret_items[x] = Item::Honey,
-                        None => ret_add_items_vec.push(higher_order_add_item(Item::Honey)),
+                        Some(x) => ret_items[x] = Symbol::Honey,
+                        None => ret_add_items_vec.push(higher_order_add_item(Symbol::Honey)),
                     }
                 }
             }
-            Item::Chicken => {
+            Symbol::Chicken => {
                 let mut rng = rand::thread_rng();
                 match rng.gen_range(0..100) {
                     0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 => {
                         match get_empty(items.clone()).vector_pos {
-                            Some(x) => ret_items[x] = Item::Egg,
-                            None => ret_add_items_vec.push(higher_order_add_item(Item::Egg)),
+                            Some(x) => ret_items[x] = Symbol::Egg,
+                            None => ret_add_items_vec.push(higher_order_add_item(Symbol::Egg)),
                         }
                     }
                     99 => match get_empty(items.clone()).vector_pos {
-                        Some(x) => ret_items[x] = Item::GoldenEgg,
-                        None => ret_add_items_vec.push(higher_order_add_item(Item::GoldenEgg)),
+                        Some(x) => ret_items[x] = Symbol::GoldenEgg,
+                        None => ret_add_items_vec.push(higher_order_add_item(Symbol::GoldenEgg)),
                     },
                     _ => (),
                 }
             }
-            Item::Goose => {
+            Symbol::Goose => {
                 let mut rng = rand::thread_rng();
                 match rng.gen_range(0..100) {
                     99 => match get_empty(items.clone()).vector_pos {
-                        Some(x) => ret_items[x] = Item::GoldenEgg,
-                        None => ret_add_items_vec.push(higher_order_add_item(Item::GoldenEgg)),
+                        Some(x) => ret_items[x] = Symbol::GoldenEgg,
+                        None => ret_add_items_vec.push(higher_order_add_item(Symbol::GoldenEgg)),
                     },
                     _ => (),
                 }
             }
-            Item::KingMidas => match get_empty(items.clone()).vector_pos {
-                Some(x) => ret_items[x] = Item::Coin,
-                None => ret_add_items_vec.push(higher_order_add_item(Item::Coin)),
+            Symbol::KingMidas => match get_empty(items.clone()).vector_pos {
+                Some(x) => ret_items[x] = Symbol::Coin,
+                None => ret_add_items_vec.push(higher_order_add_item(Symbol::Coin)),
             },
-            Item::LightBulb(mut x) => {
+            Symbol::LightBulb(mut x) => {
                 x -= 1;
-                ret_items[i] = Item::LightBulb(x);
+                ret_items[i] = Symbol::LightBulb(x);
             }
             _ => (),
         }
@@ -157,21 +157,21 @@ pub fn events<'a>(
     }
 }
 
-pub fn base_value_array(items: Vec<Item>) -> (Vec<Item>, Vec<i64>) {
+pub fn base_value_array(items: Vec<Symbol>) -> (Vec<Symbol>, Vec<i64>) {
     let mut mut_copy = items.clone();
     let mut ret_vec: Vec<i64> = vec![];
     for i in 0..20 {
         let adjecents: Vec<usize> = is_adjecent(i as u8);
         match items[i] {
-            Item::Amethyst(mut amethyst_value) => {
+            Symbol::Amethyst(mut amethyst_value) => {
                 let mut temp_value = 0;
                 for x in 0..adjecents.len() {
                     match items[adjecents[x]] {
-                        Item::Dame | Item::BuffingCapsule => {
+                        Symbol::Dame | Symbol::BuffingCapsule => {
                             amethyst_value += 1;
                             temp_value = amethyst_value * 2;
                         }
-                        Item::LightBulb(mut lifetime) => {
+                        Symbol::LightBulb(mut lifetime) => {
                             amethyst_value += 1;
                             temp_value = amethyst_value * 2;
                             lifetime -= 1;
@@ -181,18 +181,18 @@ pub fn base_value_array(items: Vec<Item>) -> (Vec<Item>, Vec<i64>) {
                 }
                 ret_vec.push(temp_value as i64)
             }
-            Item::Anchor => ret_vec.push(match i {
+            Symbol::Anchor => ret_vec.push(match i {
                 0 | 4 | 15 | 19 => 5,
                 _ => 1,
             }),
-            Item::Apple => ret_vec.push(3),
-            Item::Bartender => ret_vec.push(3),
-            Item::Bear => {
+            Symbol::Apple => ret_vec.push(3),
+            Symbol::Bartender => ret_vec.push(3),
+            Symbol::Bear => {
                 let mut val: i64 = 2;
                 for x in 0..adjecents.len() {
                     match items[adjecents[x]] {
-                        Item::Honey => {
-                            mut_copy[adjecents[x]] = Item::Empty;
+                        Symbol::Honey => {
+                            mut_copy[adjecents[x]] = Symbol::Empty;
                             val += 40
                         }
                         _ => (),
@@ -200,12 +200,12 @@ pub fn base_value_array(items: Vec<Item>) -> (Vec<Item>, Vec<i64>) {
                 }
                 ret_vec.push(val);
             }
-            Item::Beastmaster => ret_vec.push(2),
-            Item::Bee => {
+            Symbol::Beastmaster => ret_vec.push(2),
+            Symbol::Bee => {
                 let mut val: i64 = 1;
                 for x in 0..adjecents.len() {
                     match items[adjecents[x]] {
-                        Item::Flower | Item::Beehive | Item::Honey => {
+                        Symbol::Flower | Symbol::Beehive | Symbol::Honey => {
                             val += 1;
                         }
                         _ => (),
@@ -213,19 +213,19 @@ pub fn base_value_array(items: Vec<Item>) -> (Vec<Item>, Vec<i64>) {
                 }
                 ret_vec.push(val);
             }
-            Item::Beehive => ret_vec.push(3),
-            Item::Beer => ret_vec.push(1),
-            Item::Cheese => ret_vec.push(3),
-            Item::Cherry => ret_vec.push(1),
-            Item::CoconutHalf => ret_vec.push(2),
-            Item::Coin => ret_vec.push(1),
-            Item::Comedian => ret_vec.push(3),
-            Item::Chicken => ret_vec.push(2),
-            Item::Clubs => {
+            Symbol::Beehive => ret_vec.push(3),
+            Symbol::Beer => ret_vec.push(1),
+            Symbol::Cheese => ret_vec.push(3),
+            Symbol::Cherry => ret_vec.push(1),
+            Symbol::CoconutHalf => ret_vec.push(2),
+            Symbol::Coin => ret_vec.push(1),
+            Symbol::Comedian => ret_vec.push(3),
+            Symbol::Chicken => ret_vec.push(2),
+            Symbol::Clubs => {
                 let mut val: i64 = 1;
                 for x in 0..adjecents.len() {
                     match items[adjecents[x]] {
-                        Item::Clubs | Item::Spades | Item::Diamonds | Item::Hearts => {
+                        Symbol::Clubs | Symbol::Spades | Symbol::Diamonds | Symbol::Hearts => {
                             val += 1;
                         }
                         _ => (),
@@ -233,12 +233,12 @@ pub fn base_value_array(items: Vec<Item>) -> (Vec<Item>, Vec<i64>) {
                 }
                 ret_vec.push(val);
             }
-            Item::Cultist => {
+            Symbol::Cultist => {
                 let mut val: i64 = 0;
                 let mut cultis_count: i64 = 0;
                 for x in 0..20 {
                     match items[x] {
-                        Item::Cultist => cultis_count += 1,
+                        Symbol::Cultist => cultis_count += 1,
                         _ => (),
                     }
                 }
@@ -249,20 +249,20 @@ pub fn base_value_array(items: Vec<Item>) -> (Vec<Item>, Vec<i64>) {
                 }
                 ret_vec.push(val);
             }
-            Item::Diamond => {
+            Symbol::Diamond => {
                 let mut diamond_value: i64 = 5;
                 for x in 0..adjecents.len() {
-                    if items[adjecents[x]] == Item::Diamond {
+                    if items[adjecents[x]] == Symbol::Diamond {
                         diamond_value += 1
                     }
                 }
                 ret_vec.push(diamond_value);
             }
-            Item::Diamonds => {
+            Symbol::Diamonds => {
                 let mut val: i64 = 1;
                 for x in 0..adjecents.len() {
                     match items[adjecents[x]] {
-                        Item::Clubs | Item::Spades | Item::Diamonds | Item::Hearts => {
+                        Symbol::Clubs | Symbol::Spades | Symbol::Diamonds | Symbol::Hearts => {
                             val += 1;
                         }
                         _ => (),
@@ -270,55 +270,55 @@ pub fn base_value_array(items: Vec<Item>) -> (Vec<Item>, Vec<i64>) {
                 }
                 ret_vec.push(val);
             }
-            Item::Dog => {
+            Symbol::Dog => {
                 let mut val: i64 = 1;
                 for x in adjecents {
                     if !val == 3 {
                         match items[x] {
-                            Item::RobinHood(_)
-                            | Item::Thief(_)
-                            | Item::Cultist
-                            | Item::Toddler
-                            | Item::BountyHunter
-                            | Item::Miner
-                            | Item::Dwarf
-                            | Item::KingMidas
-                            | Item::Gambler(_)
-                            | Item::GeneralZaroff
-                            | Item::Witch
-                            | Item::Pirate(_)
-                            | Item::Ninja
-                            | Item::MrsFruit
-                            | Item::Hooligan
-                            | Item::Farmer
-                            | Item::Diver
-                            | Item::Dame
-                            | Item::Chef
-                            | Item::CardShark
-                            | Item::Beastmaster
-                            | Item::Geologist(_)
-                            | Item::Joker
-                            | Item::Comedian
-                            | Item::Bartender => val += 2,
+                            Symbol::RobinHood(_)
+                            | Symbol::Thief(_)
+                            | Symbol::Cultist
+                            | Symbol::Toddler
+                            | Symbol::BountyHunter
+                            | Symbol::Miner
+                            | Symbol::Dwarf
+                            | Symbol::KingMidas
+                            | Symbol::Gambler(_)
+                            | Symbol::GeneralZaroff
+                            | Symbol::Witch
+                            | Symbol::Pirate(_)
+                            | Symbol::Ninja
+                            | Symbol::MrsFruit
+                            | Symbol::Hooligan
+                            | Symbol::Farmer
+                            | Symbol::Diver
+                            | Symbol::Dame
+                            | Symbol::Chef
+                            | Symbol::CardShark
+                            | Symbol::Beastmaster
+                            | Symbol::Geologist(_)
+                            | Symbol::Joker
+                            | Symbol::Comedian
+                            | Symbol::Bartender => val += 2,
                             _ => (),
                         }
                     }
                 }
                 ret_vec.push(val);
             }
-            Item::Farmer => ret_vec.push(2),
-            Item::FiveSidedDie => {
+            Symbol::Farmer => ret_vec.push(2),
+            Symbol::FiveSidedDie => {
                 let val: i64 = rand::thread_rng().gen_range(0..5);
                 ret_vec.push(val);
             }
-            Item::Flower => ret_vec.push(1),
-            Item::GoldenEgg => ret_vec.push(4),
-            Item::Goose => ret_vec.push(1),
-            Item::Hearts => {
+            Symbol::Flower => ret_vec.push(1),
+            Symbol::GoldenEgg => ret_vec.push(4),
+            Symbol::Goose => ret_vec.push(1),
+            Symbol::Hearts => {
                 let mut val: i64 = 1;
                 for x in 0..adjecents.len() {
                     match items[adjecents[x]] {
-                        Item::Clubs | Item::Spades | Item::Diamonds | Item::Hearts => {
+                        Symbol::Clubs | Symbol::Spades | Symbol::Diamonds | Symbol::Hearts => {
                             val += 1;
                         }
                         _ => (),
@@ -326,21 +326,21 @@ pub fn base_value_array(items: Vec<Item>) -> (Vec<Item>, Vec<i64>) {
                 }
                 ret_vec.push(val);
             }
-            Item::Honey => ret_vec.push(3),
-            Item::Joker => ret_vec.push(3),
-            Item::KingMidas => ret_vec.push(1),
-            Item::Martini => ret_vec.push(3),
-            Item::MatryoshkaDollFive => ret_vec.push(4),
-            Item::Milk => ret_vec.push(1),
-            Item::Monkey => ret_vec.push(1),
-            Item::Pearl => ret_vec.push(1),
-            Item::Rain => ret_vec.push(2),
-            Item::Sapphire => ret_vec.push(2),
-            Item::Spades => {
+            Symbol::Honey => ret_vec.push(3),
+            Symbol::Joker => ret_vec.push(3),
+            Symbol::KingMidas => ret_vec.push(1),
+            Symbol::Martini => ret_vec.push(3),
+            Symbol::MatryoshkaDollFive => ret_vec.push(4),
+            Symbol::Milk => ret_vec.push(1),
+            Symbol::Monkey => ret_vec.push(1),
+            Symbol::Pearl => ret_vec.push(1),
+            Symbol::Rain => ret_vec.push(2),
+            Symbol::Sapphire => ret_vec.push(2),
+            Symbol::Spades => {
                 let mut val: i64 = 1;
                 for x in 0..adjecents.len() {
                     match items[adjecents[x]] {
-                        Item::Clubs | Item::Spades | Item::Diamonds | Item::Hearts => {
+                        Symbol::Clubs | Symbol::Spades | Symbol::Diamonds | Symbol::Hearts => {
                             val += 1;
                         }
                         _ => (),
@@ -348,33 +348,33 @@ pub fn base_value_array(items: Vec<Item>) -> (Vec<Item>, Vec<i64>) {
                 }
                 ret_vec.push(val);
             }
-            Item::Sun => ret_vec.push(3),
-            Item::Wolf => ret_vec.push(2),
-            Item::BuffingCapsule => ret_vec.push(0), //warum? weil die Buffing capsule selbst
+            Symbol::Sun => ret_vec.push(3),
+            Symbol::Wolf => ret_vec.push(2),
+            Symbol::BuffingCapsule => ret_vec.push(0), //warum? weil die Buffing capsule selbst
             //keinen wert hat sondern nur den Wert aller
             //angrenzenden Symbole verdoppelt
-            Item::Empty => ret_vec.push(0),
+            Symbol::Empty => ret_vec.push(0),
             _ => ret_vec.push(0),
         }
     }
     (mut_copy, ret_vec)
 }
 
-pub fn multipliers(items: Vec<Item>, value_vec: Vec<i64>) -> i128 {
+pub fn multipliers(items: Vec<Symbol>, value_vec: Vec<i64>) -> i128 {
     let mut mut_value_vec = value_vec.clone();
     for i in 0..20 {
         let adjecents: Vec<usize> = is_adjecent(i as u8);
         match items[i] {
-            Item::Bee => {
+            Symbol::Bee => {
                 let _ = adjecents.iter().map(|x| match items[*x] {
-                    Item::Flower | Item::Beehive | Item::Honey => mut_value_vec[*x] *= 2,
+                    Symbol::Flower | Symbol::Beehive | Symbol::Honey => mut_value_vec[*x] *= 2,
                     _ => (),
                 });
             }
-            Item::BuffingCapsule => {
+            Symbol::BuffingCapsule => {
                 let _ = adjecents.iter().map(|a| mut_value_vec[*a] *= 2);
             }
-            Item::BronzeArrow(mut d) | Item::SilverArrow(mut d) | Item::GoldenArrow(mut d) => {
+            Symbol::BronzeArrow(mut d) | Symbol::SilverArrow(mut d) | Symbol::GoldenArrow(mut d) => {
                 match rand::thread_rng().gen_range(0..8) {
                     0 => d = Direction::North,
                     1 => d = Direction::South,
@@ -386,21 +386,21 @@ pub fn multipliers(items: Vec<Item>, value_vec: Vec<i64>) -> i128 {
                     7 => d = Direction::SouthWest,
                     _ => panic!("Broken rng function"),
                 }
-                let arrow_vec = arrow_lookup(Item::BronzeArrow(d), i as u8);
+                let arrow_vec = arrow_lookup(Symbol::BronzeArrow(d), i as u8);
                 match items[i] {
-                    Item::GoldenArrow(_) => {
+                    Symbol::GoldenArrow(_) => {
                         let _ = arrow_vec
                             .unwrap()
                             .into_iter()
                             .map(|x| mut_value_vec[x as usize] *= 4);
                     }
-                    Item::SilverArrow(_) => {
+                    Symbol::SilverArrow(_) => {
                         let _ = arrow_vec
                             .unwrap()
                             .into_iter()
                             .map(|x| mut_value_vec[x as usize] *= 3);
                     }
-                    Item::BronzeArrow(_) => {
+                    Symbol::BronzeArrow(_) => {
                         let _ = arrow_vec
                             .unwrap()
                             .into_iter()
@@ -409,42 +409,42 @@ pub fn multipliers(items: Vec<Item>, value_vec: Vec<i64>) -> i128 {
                     _ => unreachable!("Rust comparisin is broken"),
                 }
             }
-            Item::Comedian => {
+            Symbol::Comedian => {
                 let _ = adjecents.into_iter().map(|x| {
                     match items[x] {
-                        Item::Banana
-                        | Item::BananaPeel
-                        | Item::Dog
-                        | Item::Monkey
-                        | Item::Toddler
-                        | Item::Joker => {
+                        Symbol::Banana
+                        | Symbol::BananaPeel
+                        | Symbol::Dog
+                        | Symbol::Monkey
+                        | Symbol::Toddler
+                        | Symbol::Joker => {
                             mut_value_vec[x] *= 3;
                         }
                         _ => (),
                     }
                 });
             }
-            Item::Dame => {
+            Symbol::Dame => {
                 let _ = adjecents.into_iter().map(|x| {
                     match items[x] {
-                        Item::Amethyst(_)
-                        | Item::Diamond
-                        | Item::Emerald
-                        | Item::Pearl
-                        | Item::Ruby
-                        | Item::Sapphire
-                        | Item::ShinyPebble
-                        | Item::VoidStone => mut_value_vec[x] *= 2,
+                        Symbol::Amethyst(_)
+                        | Symbol::Diamond
+                        | Symbol::Emerald
+                        | Symbol::Pearl
+                        | Symbol::Ruby
+                        | Symbol::Sapphire
+                        | Symbol::ShinyPebble
+                        | Symbol::VoidStone => mut_value_vec[x] *= 2,
                         _ => (),
                     }
                 });
 
                 
             }
-            Item::Joker => {
+            Symbol::Joker => {
                 let _ = adjecents.into_iter().map(|x| {
                     match items[x] {
-                        Item::Clubs | Item::Diamonds | Item::Hearts | Item::Spades => {
+                        Symbol::Clubs | Symbol::Diamonds | Symbol::Hearts | Symbol::Spades => {
                             mut_value_vec[x] *= 2
                         }
                         _ => (),
@@ -452,20 +452,20 @@ pub fn multipliers(items: Vec<Item>, value_vec: Vec<i64>) -> i128 {
                 });
 
             }
-            Item::KingMidas => {
+            Symbol::KingMidas => {
                 let _ = adjecents.into_iter().map(|x| {
                     match items[x] {
-                        Item::Coin => {
+                        Symbol::Coin => {
                             mut_value_vec[x] *= 3;
                         }
                         _ => (),
                     }
                 });
             }
-            Item::Monkey => {
+            Symbol::Monkey => {
                 let _ = adjecents.into_iter().map(|x| {
                     match items[x] {
-                        Item::CoconutHalf | Item::Banana => {
+                        Symbol::CoconutHalf | Symbol::Banana => {
                             mut_value_vec[i] = value_vec[x] * 6
                         }
                         _ => (),
@@ -474,7 +474,7 @@ pub fn multipliers(items: Vec<Item>, value_vec: Vec<i64>) -> i128 {
 
             }
             // Bitte immer als letztes lassen
-            Item::Wildcard => {
+            Symbol::Wildcard => {
                 let mut max: i64 = 0;
                 let _ = adjecents.into_iter().map(|x| {
                     if mut_value_vec[x] > max {
@@ -489,11 +489,11 @@ pub fn multipliers(items: Vec<Item>, value_vec: Vec<i64>) -> i128 {
     mut_value_vec.iter().fold(0, |acc, x| acc + *x as i128)
 }
 pub fn value_calc<'a>(
-    items: Vec<Item>,
+    items: Vec<Symbol>,
 ) -> (
     i128,
-    Vec<Item>,
-    Option<Vec<Box<dyn Fn(Vec<Item>) -> Vec<Item> + 'a>>>,
+    Vec<Symbol>,
+    Option<Vec<Box<dyn Fn(Vec<Symbol>) -> Vec<Symbol> + 'a>>>,
 ) {
     let (event_items, ret_funcs) = events(items.clone());
     let value_vec = base_value_array(event_items.clone());
@@ -505,9 +505,9 @@ pub fn value_calc<'a>(
 }
 
 pub fn postprocessing<'a>(
-    items: Vec<Item>,
-    funcs: Option<Vec<Box<dyn Fn(Vec<Item>) -> Vec<Item> + 'a>>>,
-) -> Vec<Item> {
+    items: Vec<Symbol>,
+    funcs: Option<Vec<Box<dyn Fn(Vec<Symbol>) -> Vec<Symbol> + 'a>>>,
+) -> Vec<Symbol> {
     let mut mut_copy = items.clone();
     match funcs {
         Some(_) => {
@@ -520,9 +520,9 @@ pub fn postprocessing<'a>(
     }
 }
 
-pub fn roll(items: Vec<Item>) -> (Vec<Item>, Option<Vec<Item>>) {
+pub fn roll(items: Vec<Symbol>) -> (Vec<Symbol>, Option<Vec<Symbol>>) {
     let mut mut_copy = items.clone();
-    let mut ret_vec: Vec<Item> = vec![];
+    let mut ret_vec: Vec<Symbol> = vec![];
     if mut_copy.len() >= 20 {
         let mut removed = vec![];
         for _ in 0..20 {
@@ -535,7 +535,7 @@ pub fn roll(items: Vec<Item>) -> (Vec<Item>, Option<Vec<Item>>) {
         (ret_vec, Some(removed))
     } else {
         while mut_copy.len() < 20 {
-            mut_copy.push(Item::Empty);
+            mut_copy.push(Symbol::Empty);
         }
         (ret_vec, None)
     }

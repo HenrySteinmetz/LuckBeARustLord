@@ -3,15 +3,15 @@ use rand::Rng;
 use std::process::exit;
 mod slot_machine;
 use slot_machine::calculate::*;
-use slot_machine::Item;
+use slot_machine::Symbol;
 use slot_machine::Rarities;
 use slot_machine::State;
 
 #[derive(Clone)]
 pub struct GameState {
-    items: Vec<Item>,
-    draw_items: Vec<Item>,
-    options: Vec<Item>,
+    items: Vec<Symbol>,
+    draw_items: Vec<Symbol>,
+    options: Vec<Symbol>,
     textures: Vec<TextureId>,
     money: i128,
     reroll_capsules: u8,
@@ -40,13 +40,13 @@ impl std::fmt::Display for Rarities {
     }
 }
 
-impl std::fmt::Display for Item {
+impl std::fmt::Display for Symbol {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(f, "{:?}", self)
     }
 }
 
-fn item_to_image(item: Item) -> Image {
+fn item_to_image(item: Symbol) -> Image {
     let str = item.to_text() + ".png";
     let path = "./textures/".to_string() + &str;
     println!("{}", path);
@@ -62,7 +62,7 @@ fn image_alloc(img: Image, s: &mut PixState) -> PixResult<TextureId> {
 }
 
 impl GameState {
-    fn get_options(rent_cycle: u16) -> Vec<Item> {
+    fn get_options(rent_cycle: u16) -> Vec<Symbol> {
         // NOTE: this function doesn't take the luck multiplier into account
         // and allows duplicate selection
         let mut items = vec![];
@@ -97,10 +97,10 @@ impl GameState {
                 },
             };
             let item = match rarity {
-                Rarities::Common => Item::get_common(),
-                Rarities::Uncommon => Item::get_uncommon(),
-                Rarities::Rare => Item::get_rare(),
-                Rarities::VeryRare => Item::get_very_rare(),
+                Rarities::Common => Symbol::get_common(),
+                Rarities::Uncommon => Symbol::get_uncommon(),
+                Rarities::Rare => Symbol::get_rare(),
+                Rarities::VeryRare => Symbol::get_very_rare(),
                 _ => panic!("Special or unknown item!"),
             };
             items.push(item);
@@ -109,10 +109,10 @@ impl GameState {
     }
 
     pub fn new() -> Self {
-        let mut items: Vec<Item> = vec![];
+        let mut items: Vec<Symbol> = vec![];
         let textures: Vec<TextureId> = Vec::with_capacity(23);
         for _ in 0..20 {
-            items.push(Item::Empty);
+            items.push(Symbol::Empty);
         }
         let rent_cycle: u16 = 0;
         GameState {
@@ -138,7 +138,7 @@ impl GameState {
         let temp = roll(pre_rolled);
         self.draw_items = temp.0;
         let removed = temp.1;
-        let (temp_items, cards): (Vec<Item>, Vec<(u8, Item)>) =
+        let (temp_items, cards): (Vec<Symbol>, Vec<(u8, Symbol)>) =
             preprocessing(self.draw_items.clone()).unwrap_or((self.items.clone(), vec![]));
         let (val, its, funcs) = value_calc(temp_items);
         let temp_its = postprocessing(its, funcs);
@@ -188,7 +188,7 @@ impl PixEngine for GameState {
             self.textures[x] = image_alloc( item_to_image(self.options[x]), s).unwrap();
         }
         for y in 3..23 {
-            self.textures[y] = image_alloc(item_to_image(Item::Empty), s).unwrap();
+            self.textures[y] = image_alloc(item_to_image(Symbol::Empty), s).unwrap();
         }
         println!("{:?}", self.textures);
 
@@ -366,9 +366,9 @@ impl PixEngine for GameState {
             }
             Key::Space if self.state == State::Normal => {
                 self.money += self.calculate();
-                //println!("Items: {:?}", self.items);
+                //println!("Symbols: {:?}", self.items);
                 //println!("Display items: {:?}", self.draw_items);
-                //println!("Items length: {:?}", self.items.len());
+                //println!("Symbols length: {:?}", self.items.len());
                 //println!("Display items: {:?}", self.draw_items.len());
             }
             Key::Return if self.state == State::Normal => self.state = State::GameOver,

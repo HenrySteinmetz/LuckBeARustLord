@@ -1,10 +1,10 @@
 use crate::game::slot_machine::Direction;
-use crate::game::Item;
+use crate::game::Symbol;
 
-pub fn arrow_lookup(arrow: Item, location: u8) -> Option<Vec<u8>> {
+pub fn arrow_lookup(arrow: Symbol, location: u8) -> Option<Vec<u8>> {
     let mut ret_vec: Vec<u8> = vec![];
     let direction = match arrow {
-        Item::BronzeArrow(d) => Some(d),
+        Symbol::BronzeArrow(d) => Some(d),
         _ => None,
     }
     .unwrap();
