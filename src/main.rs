@@ -8,7 +8,6 @@ fn main() -> PixResult<()> {
         .title("Luck be a Rustlord")
         .position(10, 10)
         .show_frame_rate()
-        .target_frame_rate(60)
         .build()?;
     let mut app = GameState::new();
     engine.run(&mut app)

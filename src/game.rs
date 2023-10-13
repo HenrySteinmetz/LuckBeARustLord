@@ -7,10 +7,12 @@ use slot_machine::Item;
 use slot_machine::Rarities;
 use slot_machine::State;
 
+#[derive(Clone)]
 pub struct GameState {
     items: Vec<Item>,
     draw_items: Vec<Item>,
     options: Vec<Item>,
+    textures: Vec<TextureId>,
     money: i128,
     reroll_capsules: u8,
     removal_capsules: u8,
@@ -24,6 +26,7 @@ pub struct GameState {
     pause_state: Pause,
 }
 // State for the pause menu
+#[derive(Clone)]
 enum Pause {
     Main,
     Settings,
@@ -46,7 +49,16 @@ impl std::fmt::Display for Item {
 fn item_to_image(item: Item) -> Image {
     let str = item.to_text() + ".png";
     let path = "./textures/".to_string() + &str;
+    println!("{}", path);
     Image::from_file(&path).unwrap()
+}
+
+fn image_alloc(img: Image, s: &mut PixState) -> PixResult<TextureId> {
+    let texture_id = s.create_texture(120, 120, None)?;
+    s.set_texture_target(texture_id)?;
+    s.image(&img, point!(0, 0))?;
+    s.clear_texture_target();
+    Ok(texture_id)
 }
 
 impl GameState {
@@ -95,14 +107,17 @@ impl GameState {
         }
         items
     }
+
     pub fn new() -> Self {
         let mut items: Vec<Item> = vec![];
+        let textures: Vec<TextureId> = Vec::with_capacity(23);
         for _ in 0..20 {
             items.push(Item::Empty);
         }
         let rent_cycle: u16 = 0;
         GameState {
             items: items.clone(),
+            textures,
             draw_items: items,
             options: Self::get_options(rent_cycle),
             floor: 0,
@@ -143,10 +158,40 @@ impl GameState {
             }
         }
     }
+    fn vscale<I: Into<f32>>(self, i: I) -> f32 {
+        let resolution: f32 = match self.resolution {
+            0 => 720.0,
+            1 => 1080.0,
+            2 => 1440.0,
+            _ => unreachable!("Invalid resolution")
+        };
+        let scale_factor: f32 = resolution / 1080.0;
+        i.into() * scale_factor
+    }
+     fn hscale<I: Into<f32>>(self, i: I) -> f32 {
+        let resolution: f32 = match self.resolution {
+            0 => 1280.0,
+            1 => 1920.0,
+            2 => 2560.0,
+            _ => unreachable!("Invalid resolution")
+        };
+        let scale_factor: f32 = resolution / 1920.0;
+        i.into() * scale_factor
+    }   
 }
 
 impl PixEngine for GameState {
     fn on_start(&mut self, s: &mut PixState) -> PixResult<()> {
+        // Reusable texures
+        s.blend_mode(BlendMode::Blend);
+        for x in  0..3 {
+            self.textures[x] = image_alloc( item_to_image(self.options[x]), s).unwrap();
+        }
+        for y in 3..23 {
+            self.textures[y] = image_alloc(item_to_image(Item::Empty), s).unwrap();
+        }
+        println!("{:?}", self.textures);
+
         // Theme defintion
         let mut fonts = theme::Fonts::default();
         fonts.body = Font::INCONSOLATA;
@@ -170,7 +215,7 @@ impl PixEngine for GameState {
         let mut catppuccin = Theme::builder().build();
         catppuccin.colors = colors;
         catppuccin.fonts = fonts;
-        catppuccin.font_size = 30;
+        catppuccin.font_size = 30; // Needs to scale in the future
         catppuccin.styles = theme::FontStyles::default();
         catppuccin.spacing = theme::Spacing::builder().build();
         s.set_theme(catppuccin);
@@ -186,8 +231,8 @@ impl PixEngine for GameState {
                 let rect = rect!(
                     (s.width()? as f32 / 1920.0 * 659.0) as i32,
                     (s.height()? as f32 / 1080.0 * 239.0) as i32,
-                    (tile_size * 5) as i32,
-                    (tile_size * 4) as i32
+                    (tile_size * 5) as i32 - 1,
+                    (tile_size * 4) as i32 - 1
                 );
                 s.fill(Color::rgb(49, 50, 68));
                 s.rect(rect)?;
@@ -253,34 +298,54 @@ impl PixEngine for GameState {
             },
             State::Selecting => {
                 let (w, h) = s.dimensions()?;
-                for x in 1..4 {
-                    let item = self.options[x - 1];
+                // Will be replaced with the built in scale function s.scale()
+                let vscale = self.clone().vscale(1 as u16);
+                let hscale = self.clone().hscale(1 as u16);
+
+                for z in 0..3 {
                     // Metadata
+                    let item = self.options[z as usize];
                     let description = item.get_description();
                     let rarity = item.rarity().to_string();
                     let item_name = item.to_text();
                     let value = item.get_value();
+                    let mut text = format!("\nRarity: {rarity}\nValue: {value}\nDescription:\n{description}\n");
+                    
                     // Size caclulation for the three boxes
-                    let height = h - (h as f32 / 1080.0 * 100.0) as u32;
-                    let width = (w as f32 / 3.0) as u32 - (w as f32 / 1920.0 * 100.0) as u32;
-                    //let x = (width + 50) * x + (x - (1 * 100));
-                    //let y = h - 50;
-
-                    let mut temp = format!("\nRarity: {rarity}\nValue: {value}\nDescription:\n{description}\n");
-                    let texture_id = s.create_texture(width, height, None)?;
+                    let height = ((h as f32 - (hscale * 100.0)) / 1.5) as u32;
+                    let width = (w as f32 - (vscale * 100.0) / 3.0) as u32;
+                    let x = ((z*600 + 80) as f32 * hscale) as i32;
+                    let y = h + 200 - h;
+                    let rect = rect!(0, 0, width as i32, height as i32);
+                    
+                    // Theme changes for drawing the boxes
                     s.theme_mut().spacing.frame_pad.set_x(50);
                     s.theme_mut().spacing.frame_pad.set_y(50);
-                    s.heading(item_name)?;
-                    s.text(&mut temp)?;
+                    s.fill(color!(30, 30, 46));
+                    
+                    // Creating the texture
+                    let texture_id = s.create_texture(width, height, None)?;
                     s.set_texture_target(texture_id)?;
-                    if s.hovered() {
-                        s.cursor(Cursor::hand())?;
-                    }
+                    s.rect(rect)?;
+
+                    s.fill(s.theme().colors.secondary_variant);
+                    s.wrap(width+50);
+                    s.heading(item_name)?;
+                    s.text(&mut text)?;
+
+                    s.clear_texture_target();
+
                     if s.clicked() {
                         self.items.push(item);
                         self.state = State::Normal;
                     }
-                    s.clear_texture_target();
+                    s.blend_mode(BlendMode::Blend);
+                    s.texture(texture_id, None, rect!(x, y as i32, width as i32, height as i32))?;
+                    
+                    // Display image of the item
+                    let image_texture = self.textures[z as usize];
+                    s.set_texture_target(image_texture)?;
+                    s.texture(image_texture, None, rect!(x, (y as f32 -(y as f32 /3.0)) as i32, tile_size as i32, tile_size as i32))?;
                 }
                 s.text(format!("FPS: {}", s.avg_frame_rate()))?;
             }

@@ -168,7 +168,7 @@ pub enum Item {
     Wolf,
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub enum State {
     Selecting,
     Paused,
